@@ -27,32 +27,19 @@ export default function Hero() {
     <section className="relative flex min-h-[560px] items-center overflow-hidden h-[calc(100svh-72px)]">
       <div
         ref={bgRef}
-        className="absolute -inset-x-[2%] -inset-y-[6%] will-change-transform"
+        className="absolute -inset-x-[2%] -inset-y-[6%] will-change-transform bg-blue-deep"
         style={{
-          background:
-            "linear-gradient(125deg,var(--blue-deep),var(--blue) 55%,#062035)",
+          backgroundImage: "url('/hero.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center 30%",
         }}
-      >
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(115deg,rgba(255,255,255,.05) 0 2px,transparent 2px 26px)",
-          }}
-        />
-        <div className="absolute inset-0 grid place-items-center opacity-[0.16]">
-          <i
-            className="ph ph-person-simple-swim text-white"
-            style={{ fontSize: "min(60vh,520px)" }}
-          />
-        </div>
-      </div>
+      />
 
       <div
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(90deg,rgba(6,18,31,.78),rgba(6,18,31,.35) 55%,rgba(6,18,31,.1))",
+            "linear-gradient(90deg,rgba(6,18,31,.82),rgba(6,18,31,.45) 55%,rgba(6,18,31,.2))",
         }}
       />
 
