@@ -9,6 +9,10 @@ const SOCIALS = [
 ];
 
 export default function Footer({ locations = [] }: { locations?: Location[] }) {
+  const main = locations.find((l) => l.id === "cuneo") || locations[0];
+  const phone = main?.phone || "+39 0171 66469";
+  const email = main?.email || "info@centrosportivoroero.it";
+  const address = main?.address || "Via Porta Mondovì 7, Cuneo";
   return (
     <footer className="mt-10 bg-blue-deep text-white/80">
       <div className="mx-auto grid max-w-site grid-cols-1 gap-10 px-6 pb-7 pt-16 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
@@ -90,17 +94,23 @@ export default function Footer({ locations = [] }: { locations?: Location[] }) {
             Contatti
           </h4>
           <div className="mt-4 flex flex-col gap-2.5 text-sm">
-            <span className="flex gap-[9px]">
+            <a
+              href={`tel:${phone.replace(/\s/g, "")}`}
+              className="flex gap-[9px] transition hover:text-aqua"
+            >
               <i className="ph ph-phone text-aqua" />
-              +39 0171 123 456
-            </span>
-            <span className="flex gap-[9px]">
+              {phone}
+            </a>
+            <a
+              href={`mailto:${email}`}
+              className="flex gap-[9px] break-all transition hover:text-aqua"
+            >
               <i className="ph ph-envelope-simple text-aqua" />
-              info@centrosportivoroero.it
-            </span>
+              {email}
+            </a>
             <span className="flex gap-[9px]">
               <i className="ph ph-map-pin text-aqua" />
-              Via dello Sport 12, Cuneo
+              {address}
             </span>
           </div>
         </div>
