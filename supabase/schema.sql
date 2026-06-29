@@ -16,7 +16,9 @@ create table if not exists public.locations (
   email       text not null default '',
   pool        int  not null default 0,
   maps_embed  text,
-  sort        int  not null default 0
+  sort        int  not null default 0,
+  nuoto_libero     text not null default '',
+  nuoto_libero_pdf text not null default ''
 );
 
 create table if not exists public.news (

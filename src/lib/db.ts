@@ -21,6 +21,8 @@ export function mapLocation(r: any): Location {
     email: r.email || "",
     pool: r.pool,
     mapsEmbed: r.maps_embed || undefined,
+    nuotoLibero: r.nuoto_libero || "",
+    nuotoLiberoPdf: r.nuoto_libero_pdf || "",
   };
 }
 

@@ -179,6 +179,37 @@ export default async function SedePage({ params }: { params: { id: string } }) {
         </div>
       </section>
 
+      {/* NUOTO LIBERO — ORARI & TARIFFE */}
+      {loc.nuotoLibero && (
+        <section className="mx-auto max-w-site px-6 pb-6">
+          <div className="rounded-[20px] border border-border bg-surface p-7 shadow-csr md:p-9">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <span className="text-sm font-bold uppercase tracking-[0.12em] text-aqua">
+                  Nuoto Libero
+                </span>
+                <h2 className="mt-1.5 text-[34px] text-text">Orari &amp; Tariffe</h2>
+              </div>
+              {loc.nuotoLiberoPdf && (
+                <a
+                  href={loc.nuotoLiberoPdf}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-12 items-center gap-2 rounded-[12px] bg-aqua px-5 text-[15px] font-bold text-[#06121F] transition hover:-translate-y-0.5"
+                >
+                  <i className="ph ph-file-pdf text-lg" />
+                  Scarica il PDF
+                </a>
+              )}
+            </div>
+            <div
+              className="nl mt-6"
+              dangerouslySetInnerHTML={{ __html: loc.nuotoLibero }}
+            />
+          </div>
+        </section>
+      )}
+
       {/* CORSI */}
       <section className="mx-auto max-w-site px-6 pb-6">
         <div className="flex flex-wrap items-end justify-between gap-4">

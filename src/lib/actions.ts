@@ -251,6 +251,8 @@ export async function saveLocation(input: LocationInput) {
       email: input.email || "",
       pool: Math.max(0, Math.min(100, Number(input.pool) || 0)),
       maps_embed: input.mapsEmbed || null,
+      nuoto_libero: input.nuotoLibero || "",
+      nuoto_libero_pdf: input.nuotoLiberoPdf || "",
     })
     .eq("id", input.id);
   if (error) throw error;

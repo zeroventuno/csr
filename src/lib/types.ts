@@ -11,6 +11,8 @@ export interface Location {
   email: string;
   pool: number; // % posti liberi (widget disponibilita')
   mapsEmbed?: string; // URL src per iframe Google Maps
+  nuotoLibero: string; // HTML: orari & tariffe nuoto libero (per sede)
+  nuotoLiberoPdf: string; // URL al PDF scaricabile
 }
 
 export interface News {
@@ -115,4 +117,6 @@ export interface LocationInput {
   email: string;
   pool: number;
   mapsEmbed?: string;
+  nuotoLibero: string;
+  nuotoLiberoPdf: string;
 }

@@ -14,6 +14,8 @@ export default async function AdminLocationsPage() {
     email: l.email,
     pool: l.pool,
     mapsEmbed: l.mapsEmbed,
+    nuotoLibero: l.nuotoLibero,
+    nuotoLiberoPdf: l.nuotoLiberoPdf,
   }));
   return <LocationsManager rows={rows} />;
 }

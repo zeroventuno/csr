@@ -15,6 +15,8 @@ export interface LocRow {
   email: string;
   pool: number;
   mapsEmbed?: string;
+  nuotoLibero: string;
+  nuotoLiberoPdf: string;
 }
 
 export default function LocationsManager({ rows }: { rows: LocRow[] }) {
@@ -30,6 +32,8 @@ export default function LocationsManager({ rows }: { rows: LocRow[] }) {
     email: "",
     pool: 0,
     mapsEmbed: "",
+    nuotoLibero: "",
+    nuotoLiberoPdf: "",
   });
 
   function openEdit(l: LocRow) {
@@ -42,6 +46,8 @@ export default function LocationsManager({ rows }: { rows: LocRow[] }) {
       email: l.email || "",
       pool: l.pool,
       mapsEmbed: l.mapsEmbed || "",
+      nuotoLibero: l.nuotoLibero || "",
+      nuotoLiberoPdf: l.nuotoLiberoPdf || "",
     });
     setOpen(true);
   }
@@ -210,6 +216,35 @@ export default function LocationsManager({ rows }: { rows: LocRow[] }) {
             rows={2}
             placeholder="https://www.google.com/maps?q=...&output=embed"
             className={fieldArea}
+          />
+        </div>
+
+        <div className="mt-2 border-t border-border pt-4">
+          <div className="text-[13px] font-bold uppercase tracking-[0.05em] text-aqua">
+            <i className="ph ph-waves" /> Nuoto Libero — Orari &amp; Tariffe
+          </div>
+          <p className="mt-1 text-[12px] text-muted">
+            Contenuto della sezione (accetta HTML: titoli &lt;h3&gt;, tabelle
+            &lt;table&gt;, elenchi &lt;ul&gt;, note con &lt;p class=&quot;nl-note&quot;&gt;).
+          </p>
+        </div>
+        <div>
+          <label className={fieldLabel}>Contenuto (HTML)</label>
+          <textarea
+            value={form.nuotoLibero}
+            onChange={(e) => set("nuotoLibero", e.target.value)}
+            rows={8}
+            placeholder="<h3>Orari…</h3><table>…</table>"
+            className={`${fieldArea} font-mono text-[13px]`}
+          />
+        </div>
+        <div>
+          <label className={fieldLabel}>URL del PDF scaricabile</label>
+          <input
+            value={form.nuotoLiberoPdf}
+            onChange={(e) => set("nuotoLiberoPdf", e.target.value)}
+            placeholder="/nuoto-libero-....pdf  oppure  https://…"
+            className={fieldInput}
           />
         </div>
       </SlideOver>
