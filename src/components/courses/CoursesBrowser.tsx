@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { matchesLocation } from "@/lib/loc";
 
 export interface Session {
   name: string;
@@ -8,7 +9,8 @@ export interface Session {
   schedule: string;
   price: string;
   priceNote: string;
-  locationName: string;
+  locationIds: string[];
+  locationLabel: string;
 }
 export interface Cat {
   id: string;
@@ -40,10 +42,14 @@ const FAQ = [
 
 export default function CoursesBrowser({
   categories,
+  locations,
   initialCat,
+  initialSede,
 }: {
   categories: Cat[];
+  locations: { id: string; name: string }[];
   initialCat?: string;
+  initialSede?: string;
 }) {
   const initialIndex = Math.max(
     0,
@@ -51,8 +57,17 @@ export default function CoursesBrowser({
   );
   const [tab, setTab] = useState(initialIndex === -1 ? 0 : initialIndex);
   const [faq, setFaq] = useState(0);
+  const [sede, setSede] = useState<string>(
+    initialSede && locations.some((l) => l.id === initialSede)
+      ? initialSede
+      : "Tutte"
+  );
 
   const cur = categories[tab] || categories[0];
+  const curSessions =
+    sede === "Tutte"
+      ? cur.sessions
+      : cur.sessions.filter((s) => matchesLocation(s.locationIds, sede));
 
   return (
     <section className="mx-auto max-w-site px-6 pb-20 pt-10">
@@ -108,14 +123,39 @@ export default function CoursesBrowser({
             </a>
           </div>
 
+          {/* SEDE FILTER */}
+          <div className="mt-[18px] flex flex-wrap items-center gap-2">
+            <span className="mr-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.08em] text-muted">
+              <i className="ph ph-map-pin" />
+              Sede
+            </span>
+            {[{ id: "Tutte", name: "Tutte" }, ...locations].map((l) => {
+              const on = sede === l.id;
+              return (
+                <button
+                  key={l.id}
+                  onClick={() => setSede(l.id)}
+                  className="h-[34px] rounded-[10px] border px-3.5 text-[13px] font-semibold transition hover:-translate-y-0.5"
+                  style={{
+                    background: on ? "var(--aqua)" : "var(--surface)",
+                    color: on ? "#06121F" : "var(--text)",
+                    borderColor: on ? "var(--aqua)" : "var(--border)",
+                  }}
+                >
+                  {l.name}
+                </button>
+              );
+            })}
+          </div>
+
           {/* SESSIONS */}
-          <div className="mt-[18px] flex flex-col gap-3">
-            {cur.sessions.length === 0 ? (
+          <div className="mt-3.5 flex flex-col gap-3">
+            {curSessions.length === 0 ? (
               <div className="rounded-[16px] border border-border bg-surface p-8 text-center text-muted">
-                Nessuna sessione attiva al momento per questa categoria.
+                Nessuna sessione per questa categoria nella sede selezionata.
               </div>
             ) : (
-              cur.sessions.map((s, i) => (
+              curSessions.map((s, i) => (
                 <div
                   key={i}
                   className="grid grid-cols-1 items-center gap-5 rounded-[16px] border border-border bg-surface px-[22px] py-5 transition duration-300 hover:border-aqua hover:shadow-csr md:grid-cols-[1.4fr_1fr_1fr_auto]"
@@ -126,7 +166,7 @@ export default function CoursesBrowser({
                     </div>
                     <div className="mt-[3px] flex items-center gap-1.5 text-[13px] text-muted">
                       <i className="ph ph-user-circle" />
-                      {s.instructor} · {s.locationName}
+                      {s.instructor} · {s.locationLabel}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-text">

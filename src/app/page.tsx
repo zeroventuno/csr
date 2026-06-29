@@ -8,6 +8,7 @@ import LocationSwitcher from "@/components/home/LocationSwitcher";
 import { getDB } from "@/lib/db";
 import { CATEGORIES } from "@/lib/categories";
 import { formatDayMonth } from "@/lib/format";
+import { locationLabel } from "@/lib/loc";
 
 export const dynamic = "force-dynamic";
 
@@ -22,8 +23,6 @@ const PARTNERS = [
 
 export default async function HomePage() {
   const db = await getDB();
-  const locName = (id: string) =>
-    id === "all" ? "Tutte" : db.locations.find((l) => l.id === id)?.name || id;
 
   const published = db.news
     .filter((n) => n.published)
@@ -152,7 +151,8 @@ export default async function HomePage() {
                       {formatDayMonth(featured.date)} {featured.date.slice(0, 4)}
                     </span>
                     <span>
-                      <i className="ph ph-map-pin" /> {locName(featured.locationId)}
+                      <i className="ph ph-map-pin" />{" "}
+                      {locationLabel(featured.locationIds, db.locations)}
                     </span>
                   </div>
                   <h3 className="text-[32px] leading-[1.05] text-text">

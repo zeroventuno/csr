@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { Category } from "@/lib/types";
+import { matchesLocation } from "@/lib/loc";
 
 export interface NewsCard {
   slug: string;
   title: string;
   category: Category;
-  locationId: string;
-  locationName: string;
+  locationIds: string[];
+  locationLabel: string;
   date: string; // gia' formattata
   excerpt: string;
   icon: string;
@@ -40,7 +41,7 @@ export default function NewsBrowser({
       items.filter(
         (n) =>
           (cat === "Tutte" || n.category === cat) &&
-          (loc === "Tutte" || n.locationId === loc || n.locationId === "all")
+          (loc === "Tutte" || matchesLocation(n.locationIds, loc))
       ),
     [items, cat, loc]
   );
@@ -158,7 +159,7 @@ export default function NewsBrowser({
                       <i className="ph ph-calendar-blank" /> {n.date}
                     </span>
                     <span>
-                      <i className="ph ph-map-pin" /> {n.locationName}
+                      <i className="ph ph-map-pin" /> {n.locationLabel}
                     </span>
                   </div>
                   <h3 className="text-[23px] leading-[1.08] text-text">

@@ -2,14 +2,13 @@ import NewsManager, { type NewsRow } from "@/components/admin/NewsManager";
 import { getDB } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { formatDate } from "@/lib/format";
+import { locationLabel } from "@/lib/loc";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminNewsPage() {
   const session = await getSession();
   const db = await getDB();
-  const locName = (id: string) =>
-    id === "all" ? "Tutte" : db.locations.find((l) => l.id === id)?.name || id;
 
   const rows: NewsRow[] = [...db.news]
     .sort((a, b) => (a.date < b.date ? 1 : -1))
@@ -17,8 +16,8 @@ export default async function AdminNewsPage() {
       id: n.id,
       title: n.title,
       category: n.category,
-      locationId: n.locationId,
-      locationName: locName(n.locationId),
+      locationIds: n.locationIds,
+      locationLabel: locationLabel(n.locationIds, db.locations),
       date: n.date,
       dateLabel: formatDate(n.date),
       author: n.author,

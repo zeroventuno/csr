@@ -17,7 +17,7 @@ export interface News {
   slug: string;
   title: string;
   category: Category;
-  locationId: string; // id sede oppure "all"
+  locationIds: string[]; // ids sedi collegate; vuoto = tutte le sedi
   excerpt: string;
   content: string; // HTML
   coverImage?: string; // url immagine di copertina
@@ -37,7 +37,7 @@ export interface Course {
   price: string;
   priceNote: string;
   instructor: string;
-  locationId: string;
+  locationIds: string[]; // ids sedi collegate; vuoto = tutte le sedi
   createdAt: string;
 }
 
@@ -46,7 +46,7 @@ export interface EventItem {
   title: string;
   date: string; // ISO date
   time: string;
-  locationId: string;
+  locationIds: string[]; // ids sedi collegate; vuoto = tutte le sedi
   description: string;
   image?: string;
   createdAt: string;
@@ -75,7 +75,7 @@ export interface NewsInput {
   id?: string;
   title: string;
   category: Category;
-  locationId: string;
+  locationIds: string[];
   excerpt: string;
   content: string;
   coverImage?: string;
@@ -92,7 +92,7 @@ export interface CourseInput {
   price: string;
   priceNote: string;
   instructor: string;
-  locationId: string;
+  locationIds: string[];
 }
 
 export interface EventInput {
@@ -100,7 +100,7 @@ export interface EventInput {
   title: string;
   date: string;
   time: string;
-  locationId: string;
+  locationIds: string[];
   description: string;
   image?: string;
 }

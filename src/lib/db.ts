@@ -29,7 +29,7 @@ export function mapNews(r: any): News {
     slug: r.slug,
     title: r.title,
     category: r.category,
-    locationId: r.location_id,
+    locationIds: r.location_ids || [],
     excerpt: r.excerpt || "",
     content: r.content || "",
     coverImage: r.cover_image || "",
@@ -51,7 +51,7 @@ export function mapCourse(r: any): Course {
     price: r.price,
     priceNote: r.price_note || "",
     instructor: r.instructor,
-    locationId: r.location_id,
+    locationIds: r.location_ids || [],
     createdAt: r.created_at,
   };
 }
@@ -62,7 +62,7 @@ export function mapEvent(r: any): EventItem {
     title: r.title,
     date: typeof r.date === "string" ? r.date.slice(0, 10) : r.date,
     time: r.time,
-    locationId: r.location_id,
+    locationIds: r.location_ids || [],
     description: r.description || "",
     image: r.image || "",
     createdAt: r.created_at,

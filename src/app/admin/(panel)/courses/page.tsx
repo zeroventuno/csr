@@ -2,14 +2,13 @@ import CoursesManager, { type CourseRow } from "@/components/admin/CoursesManage
 import { getDB } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { getCategory } from "@/lib/categories";
+import { locationLabel } from "@/lib/loc";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminCoursesPage() {
   const session = await getSession();
   const db = await getDB();
-  const locName = (id: string) =>
-    db.locations.find((l) => l.id === id)?.name || id;
 
   const rows: CourseRow[] = db.courses.map((c) => {
     const cat = getCategory(c.categoryId);
@@ -24,8 +23,8 @@ export default async function AdminCoursesPage() {
       price: c.price,
       priceNote: c.priceNote,
       instructor: c.instructor,
-      locationId: c.locationId,
-      locationName: locName(c.locationId),
+      locationIds: c.locationIds,
+      locationLabel: locationLabel(c.locationIds, db.locations),
     };
   });
 

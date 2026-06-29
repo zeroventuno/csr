@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { Location } from "@/lib/types";
 
 export default function LocationSwitcher({
@@ -93,6 +94,13 @@ export default function LocationSwitcher({
               <i className="ph ph-phone" />
               {loc.phone}
             </a>
+            <Link
+              href={`/sedi/${loc.id}`}
+              className="mt-3 flex items-center gap-1.5 text-[13px] font-semibold text-muted transition hover:text-aqua"
+            >
+              Pagina della sede
+              <i className="ph ph-arrow-right" />
+            </Link>
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import CoursesBrowser, { type Cat } from "@/components/courses/CoursesBrowser";
 import { getDB } from "@/lib/db";
 import { CATEGORIES } from "@/lib/categories";
+import { locationLabel } from "@/lib/loc";
 
 export const dynamic = "force-dynamic";
 
@@ -13,11 +14,9 @@ export const metadata = {
 export default async function CorsiPage({
   searchParams,
 }: {
-  searchParams: { cat?: string };
+  searchParams: { cat?: string; sede?: string };
 }) {
   const db = await getDB();
-  const locName = (id: string) =>
-    db.locations.find((l) => l.id === id)?.name || id;
 
   const categories: Cat[] = CATEGORIES.map((c) => ({
     id: c.id,
@@ -33,9 +32,12 @@ export default async function CorsiPage({
         schedule: co.schedule,
         price: co.price,
         priceNote: co.priceNote,
-        locationName: locName(co.locationId),
+        locationIds: co.locationIds,
+        locationLabel: locationLabel(co.locationIds, db.locations),
       })),
   }));
+
+  const locations = db.locations.map((l) => ({ id: l.id, name: l.name }));
 
   return (
     <>
@@ -66,7 +68,12 @@ export default async function CorsiPage({
         </div>
       </section>
 
-      <CoursesBrowser categories={categories} initialCat={searchParams.cat} />
+      <CoursesBrowser
+        categories={categories}
+        locations={locations}
+        initialCat={searchParams.cat}
+        initialSede={searchParams.sede}
+      />
 
       <Footer locations={db.locations} />
     </>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import SlideOver, { fieldLabel, fieldInput } from "./SlideOver";
+import LocationPicker from "./LocationPicker";
 import { saveCourse, deleteCourse } from "@/lib/actions";
 import { CATEGORIES } from "@/lib/categories";
 import type { Role, CourseInput } from "@/lib/types";
@@ -18,8 +19,8 @@ export interface CourseRow {
   price: string;
   priceNote: string;
   instructor: string;
-  locationId: string;
-  locationName: string;
+  locationIds: string[];
+  locationLabel: string;
 }
 
 const emptyForm: CourseInput = {
@@ -31,7 +32,7 @@ const emptyForm: CourseInput = {
   price: "",
   priceNote: "",
   instructor: "",
-  locationId: "cuneo",
+  locationIds: [],
 };
 
 export default function CoursesManager({
@@ -50,7 +51,7 @@ export default function CoursesManager({
   const isAdmin = role === "admin";
 
   function openNew() {
-    setForm({ ...emptyForm, locationId: locations[0]?.id || "cuneo" });
+    setForm({ ...emptyForm, locationIds: [] });
     setOpen(true);
   }
   function openEdit(r: CourseRow) {
@@ -63,7 +64,7 @@ export default function CoursesManager({
       price: r.price,
       priceNote: r.priceNote,
       instructor: r.instructor,
-      locationId: r.locationId,
+      locationIds: r.locationIds,
     });
     setOpen(true);
   }
@@ -144,7 +145,7 @@ export default function CoursesManager({
               <span className="head text-lg font-extrabold text-text">
                 {r.price}
               </span>
-              <span className="text-[13px] text-muted">{r.locationName}</span>
+              <span className="text-[13px] text-muted">{r.locationLabel}</span>
               <div className="flex gap-1.5 justify-self-start md:justify-self-end">
                 <button
                   onClick={() => openEdit(r)}
@@ -192,36 +193,25 @@ export default function CoursesManager({
           </>
         }
       >
-        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-          <div>
-            <label className={fieldLabel}>Categoria</label>
-            <select
-              value={form.categoryId}
-              onChange={(e) => set("categoryId", e.target.value)}
-              className={fieldInput}
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.title}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className={fieldLabel}>Sede</label>
-            <select
-              value={form.locationId}
-              onChange={(e) => set("locationId", e.target.value)}
-              className={fieldInput}
-            >
-              {locations.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div>
+          <label className={fieldLabel}>Categoria</label>
+          <select
+            value={form.categoryId}
+            onChange={(e) => set("categoryId", e.target.value)}
+            className={fieldInput}
+          >
+            {CATEGORIES.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.title}
+              </option>
+            ))}
+          </select>
         </div>
+        <LocationPicker
+          value={form.locationIds}
+          locations={locations}
+          onChange={(ids) => setForm((f) => ({ ...f, locationIds: ids }))}
+        />
         <div>
           <label className={fieldLabel}>Nome del corso</label>
           <input

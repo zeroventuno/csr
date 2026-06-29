@@ -6,9 +6,9 @@ import ThemeToggle from "./ThemeToggle";
 
 const NAV = [
   { key: "home", label: "Home", href: "/" },
+  { key: "sedi", label: "Sedi", href: "/sedi" },
   { key: "corsi", label: "Corsi", href: "/corsi" },
   { key: "news", label: "News", href: "/news" },
-  { key: "chi", label: "Chi Siamo", href: "/#info" },
   { key: "contatti", label: "Contatti", href: "/#contatti" },
 ];
 

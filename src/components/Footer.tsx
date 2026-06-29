@@ -54,7 +54,11 @@ export default function Footer({ locations = [] }: { locations?: Location[] }) {
                   { id: "asti", name: "Asti" },
                 ]
             ).map((l) => (
-              <Link key={l.id} href="/#info" className="transition hover:text-aqua">
+              <Link
+                key={l.id}
+                href={`/sedi/${l.id}`}
+                className="transition hover:text-aqua"
+              >
                 {l.name}
               </Link>
             ))}

@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import ShareBar from "@/components/news/ShareBar";
 import { getDB } from "@/lib/db";
 import { formatDateLong, formatDayMonth } from "@/lib/format";
+import { locationNames } from "@/lib/loc";
 
 export const dynamic = "force-dynamic";
 
@@ -17,8 +18,7 @@ export default async function ArticlePage({
   const article = db.news.find((n) => n.slug === params.slug && n.published);
   if (!article) notFound();
 
-  const locName = (id: string) =>
-    id === "all" ? "Tutte le sedi" : db.locations.find((l) => l.id === id)?.name || id;
+  const articleLocations = locationNames(article.locationIds, db.locations).join(" · ");
 
   const related = db.news
     .filter((n) => n.published && n.id !== article.id)
@@ -86,7 +86,7 @@ export default async function ArticlePage({
               <i className="ph ph-calendar-blank" /> {formatDateLong(article.date)}
             </span>
             <span className="text-[13px] text-white/80">
-              <i className="ph ph-map-pin" /> {locName(article.locationId)}
+              <i className="ph ph-map-pin" /> {articleLocations}
             </span>
           </div>
           <h1

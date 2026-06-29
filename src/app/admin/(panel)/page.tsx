@@ -1,5 +1,6 @@
 import { getDB } from "@/lib/db";
 import { formatDate } from "@/lib/format";
+import { matchesLocation } from "@/lib/loc";
 
 export const dynamic = "force-dynamic";
 
@@ -17,12 +18,12 @@ export default async function DashboardPage() {
     { label: "Sedi attive", value: db.locations.length, icon: "ph-map-pin" },
   ];
 
-  // "Iscrizioni per sede" — usiamo il n. di corsi per sede come proxy.
+  // "Corsi per sede" — un item collegato a piu' sedi conta per ognuna.
   const perLoc = db.locations.map((l) => ({
     name: l.name,
-    courses: db.courses.filter((c) => c.locationId === l.id).length,
-    news: db.news.filter((n) => n.locationId === l.id).length,
-    events: db.events.filter((e) => e.locationId === l.id).length,
+    courses: db.courses.filter((c) => matchesLocation(c.locationIds, l.id)).length,
+    news: db.news.filter((n) => matchesLocation(n.locationIds, l.id)).length,
+    events: db.events.filter((e) => matchesLocation(e.locationIds, l.id)).length,
   }));
   const maxCourses = Math.max(1, ...perLoc.map((p) => p.courses));
 

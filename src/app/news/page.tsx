@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import NewsBrowser, { type NewsCard } from "@/components/news/NewsBrowser";
 import { getDB } from "@/lib/db";
 import { formatDate } from "@/lib/format";
+import { locationLabel } from "@/lib/loc";
 
 export const dynamic = "force-dynamic";
 
@@ -12,8 +13,6 @@ export const metadata = {
 
 export default async function NewsPage() {
   const db = await getDB();
-  const locName = (id: string) =>
-    id === "all" ? "Tutte" : db.locations.find((l) => l.id === id)?.name || id;
 
   const items: NewsCard[] = db.news
     .filter((n) => n.published)
@@ -22,8 +21,8 @@ export default async function NewsPage() {
       slug: n.slug,
       title: n.title,
       category: n.category,
-      locationId: n.locationId,
-      locationName: locName(n.locationId),
+      locationIds: n.locationIds,
+      locationLabel: locationLabel(n.locationIds, db.locations),
       date: formatDate(n.date),
       excerpt: n.excerpt,
       icon: n.icon,

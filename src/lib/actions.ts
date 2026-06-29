@@ -93,7 +93,7 @@ export async function saveNews(input: NewsInput) {
       .update({
         title: input.title,
         category: input.category,
-        location_id: input.locationId,
+        location_ids: input.locationIds,
         excerpt: input.excerpt,
         content: input.content,
         cover_image: input.coverImage || null,
@@ -116,7 +116,7 @@ export async function saveNews(input: NewsInput) {
       slug,
       title: input.title,
       category: input.category,
-      location_id: input.locationId,
+      location_ids: input.locationIds,
       excerpt: input.excerpt,
       content: input.content,
       cover_image: input.coverImage || null,
@@ -176,7 +176,7 @@ export async function saveCourse(input: CourseInput) {
     price: input.price,
     price_note: input.priceNote,
     instructor: input.instructor,
-    location_id: input.locationId,
+    location_ids: input.locationIds,
   };
 
   if (input.id) {
@@ -210,7 +210,7 @@ export async function saveEvent(input: EventInput) {
     title: input.title,
     date: input.date,
     time: input.time,
-    location_id: input.locationId,
+    location_ids: input.locationIds,
     description: input.description,
     image: input.image || null,
   };

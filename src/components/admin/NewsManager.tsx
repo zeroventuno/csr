@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import SlideOver, { fieldLabel, fieldInput, fieldArea } from "./SlideOver";
+import LocationPicker from "./LocationPicker";
 import {
   saveNews,
   deleteNews,
@@ -15,8 +16,8 @@ export interface NewsRow {
   id: string;
   title: string;
   category: Category;
-  locationId: string;
-  locationName: string;
+  locationIds: string[];
+  locationLabel: string;
   date: string;
   dateLabel: string;
   author: string;
@@ -44,7 +45,7 @@ const emptyForm = {
   id: undefined as string | undefined,
   title: "",
   category: "Eventi" as Category,
-  locationId: "all",
+  locationIds: [] as string[],
   excerpt: "",
   date: new Date().toISOString().slice(0, 10),
   coverImage: "",
@@ -71,8 +72,6 @@ export default function NewsManager({
   const fileRef = useRef<HTMLInputElement>(null);
   const isAdmin = role === "admin";
 
-  const locOptions = [{ id: "all", name: "Tutte le sedi" }, ...locations];
-
   useEffect(() => {
     if (open && editorRef.current) {
       editorRef.current.innerHTML = initialContent;
@@ -97,7 +96,7 @@ export default function NewsManager({
       id: r.id,
       title: r.title,
       category: r.category,
-      locationId: r.locationId,
+      locationIds: r.locationIds,
       excerpt: r.excerpt,
       date: r.date,
       coverImage: r.coverImage || "",
@@ -145,7 +144,7 @@ export default function NewsManager({
         id: form.id,
         title: form.title.trim(),
         category: form.category,
-        locationId: form.locationId,
+        locationIds: form.locationIds,
         excerpt: form.excerpt,
         content: editorRef.current?.innerHTML || "",
         coverImage: form.coverImage,
@@ -238,7 +237,7 @@ export default function NewsManager({
               <span className="justify-self-start rounded-[6px] bg-aqua-soft px-[9px] py-[3px] text-[12.5px] font-semibold text-blue">
                 {r.category}
               </span>
-              <span className="text-[13.5px] text-muted">{r.locationName}</span>
+              <span className="text-[13.5px] text-muted">{r.locationLabel}</span>
               <button
                 onClick={() => onToggle(r.id)}
                 className="flex h-7 items-center gap-1.5 justify-self-start rounded-[20px] px-2.5 text-xs font-bold"
@@ -326,7 +325,7 @@ export default function NewsManager({
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
           <div>
             <label className={fieldLabel}>Categoria</label>
             <select
@@ -344,22 +343,6 @@ export default function NewsManager({
             </select>
           </div>
           <div>
-            <label className={fieldLabel}>Sede</label>
-            <select
-              value={form.locationId}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, locationId: e.target.value }))
-              }
-              className={fieldInput}
-            >
-              {locOptions.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
             <label className={fieldLabel}>Data</label>
             <input
               type="date"
@@ -369,6 +352,12 @@ export default function NewsManager({
             />
           </div>
         </div>
+
+        <LocationPicker
+          value={form.locationIds}
+          locations={locations}
+          onChange={(ids) => setForm((f) => ({ ...f, locationIds: ids }))}
+        />
 
         <div>
           <label className={fieldLabel}>Estratto</label>

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import SlideOver, { fieldLabel, fieldInput, fieldArea } from "./SlideOver";
+import LocationPicker from "./LocationPicker";
 import { saveEvent, deleteEvent } from "@/lib/actions";
 import type { Role, EventInput } from "@/lib/types";
 
@@ -11,8 +12,8 @@ export interface EventRow {
   title: string;
   date: string; // ISO YYYY-MM-DD
   time: string;
-  locationId: string;
-  locationName: string;
+  locationIds: string[];
+  locationLabel: string;
   description: string;
   image?: string;
 }
@@ -55,7 +56,7 @@ export default function EventsManager({
     title: "",
     date: iso(year, month, 1),
     time: "10:00",
-    locationId: locations[0]?.id || "cuneo",
+    locationIds: [],
     description: "",
     image: "",
   };
@@ -102,7 +103,7 @@ export default function EventsManager({
     setForm({
       ...emptyForm,
       date: iso(year, month, day || 1),
-      locationId: locations[0]?.id || "cuneo",
+      locationIds: [],
     });
     setOpen(true);
   }
@@ -112,7 +113,7 @@ export default function EventsManager({
       title: e.title,
       date: e.date,
       time: e.time,
-      locationId: e.locationId,
+      locationIds: e.locationIds,
       description: e.description,
       image: e.image || "",
     });
@@ -244,7 +245,7 @@ export default function EventsManager({
                     </div>
                     <div className="mt-0.5 text-xs text-muted">
                       <i className="ph ph-clock" /> {e.time} ·{" "}
-                      <i className="ph ph-map-pin" /> {e.locationName}
+                      <i className="ph ph-map-pin" /> {e.locationLabel}
                     </div>
                   </div>
                   <div className="flex gap-1.5">
@@ -305,7 +306,7 @@ export default function EventsManager({
             className={fieldInput}
           />
         </div>
-        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
           <div>
             <label className={fieldLabel}>Data</label>
             <input
@@ -324,21 +325,12 @@ export default function EventsManager({
               className={fieldInput}
             />
           </div>
-          <div>
-            <label className={fieldLabel}>Sede</label>
-            <select
-              value={form.locationId}
-              onChange={(e) => set("locationId", e.target.value)}
-              className={fieldInput}
-            >
-              {locations.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.name}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
+        <LocationPicker
+          value={form.locationIds}
+          locations={locations}
+          onChange={(ids) => setForm((f) => ({ ...f, locationIds: ids }))}
+        />
         <div>
           <label className={fieldLabel}>Descrizione</label>
           <textarea
