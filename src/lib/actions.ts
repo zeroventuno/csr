@@ -248,6 +248,7 @@ export async function saveLocation(input: LocationInput) {
       address: input.address,
       hours: input.hours,
       phone: input.phone,
+      email: input.email || "",
       pool: Math.max(0, Math.min(100, Number(input.pool) || 0)),
       maps_embed: input.mapsEmbed || null,
     })

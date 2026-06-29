@@ -11,6 +11,7 @@ export default async function AdminLocationsPage() {
     address: l.address,
     hours: l.hours,
     phone: l.phone,
+    email: l.email,
     pool: l.pool,
     mapsEmbed: l.mapsEmbed,
   }));

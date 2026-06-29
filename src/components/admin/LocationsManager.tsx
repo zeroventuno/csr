@@ -12,6 +12,7 @@ export interface LocRow {
   address: string;
   hours: string;
   phone: string;
+  email: string;
   pool: number;
   mapsEmbed?: string;
 }
@@ -26,6 +27,7 @@ export default function LocationsManager({ rows }: { rows: LocRow[] }) {
     address: "",
     hours: "",
     phone: "",
+    email: "",
     pool: 0,
     mapsEmbed: "",
   });
@@ -37,6 +39,7 @@ export default function LocationsManager({ rows }: { rows: LocRow[] }) {
       address: l.address,
       hours: l.hours,
       phone: l.phone,
+      email: l.email || "",
       pool: l.pool,
       mapsEmbed: l.mapsEmbed || "",
     });
@@ -105,6 +108,12 @@ export default function LocationsManager({ rows }: { rows: LocRow[] }) {
                 <i className="ph ph-phone text-[17px] text-aqua" />
                 {l.phone}
               </div>
+              {l.email && (
+                <div className="flex gap-2.5 break-all text-[13.5px] text-text">
+                  <i className="ph ph-envelope-simple text-[17px] text-aqua" />
+                  {l.email}
+                </div>
+              )}
               <div className="flex items-center gap-2.5 text-[13.5px] text-text">
                 <i className="ph ph-drop text-[17px] text-aqua" />
                 Disponibilità vasche: <b>{l.pool}%</b>
@@ -172,16 +181,26 @@ export default function LocationsManager({ rows }: { rows: LocRow[] }) {
             />
           </div>
           <div>
-            <label className={fieldLabel}>Disponibilità vasche (%)</label>
+            <label className={fieldLabel}>Email</label>
             <input
-              type="number"
-              min={0}
-              max={100}
-              value={form.pool}
-              onChange={(e) => set("pool", Number(e.target.value))}
+              type="email"
+              value={form.email}
+              onChange={(e) => set("email", e.target.value)}
+              placeholder="info...@centrosportivoroero.it"
               className={fieldInput}
             />
           </div>
+        </div>
+        <div>
+          <label className={fieldLabel}>Disponibilità vasche (%)</label>
+          <input
+            type="number"
+            min={0}
+            max={100}
+            value={form.pool}
+            onChange={(e) => set("pool", Number(e.target.value))}
+            className={fieldInput}
+          />
         </div>
         <div>
           <label className={fieldLabel}>URL embed Google Maps</label>

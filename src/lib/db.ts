@@ -18,6 +18,7 @@ export function mapLocation(r: any): Location {
     address: r.address,
     hours: r.hours,
     phone: r.phone,
+    email: r.email || "",
     pool: r.pool,
     mapsEmbed: r.maps_embed || undefined,
   };

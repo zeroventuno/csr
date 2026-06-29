@@ -8,6 +8,7 @@ export interface Location {
   address: string;
   hours: string;
   phone: string;
+  email: string;
   pool: number; // % posti liberi (widget disponibilita')
   mapsEmbed?: string; // URL src per iframe Google Maps
 }
@@ -111,6 +112,7 @@ export interface LocationInput {
   address: string;
   hours: string;
   phone: string;
+  email: string;
   pool: number;
   mapsEmbed?: string;
 }

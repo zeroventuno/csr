@@ -94,6 +94,15 @@ export default function LocationSwitcher({
               <i className="ph ph-phone" />
               {loc.phone}
             </a>
+            {loc.email && (
+              <a
+                href={`mailto:${loc.email}`}
+                className="mt-2 flex items-center gap-2 break-all text-[13px] font-medium text-muted transition hover:text-aqua"
+              >
+                <i className="ph ph-envelope-simple" />
+                {loc.email}
+              </a>
+            )}
             <Link
               href={`/sedi/${loc.id}`}
               className="mt-3 flex items-center gap-1.5 text-[13px] font-semibold text-muted transition hover:text-aqua"

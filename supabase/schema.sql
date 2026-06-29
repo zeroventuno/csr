@@ -13,6 +13,7 @@ create table if not exists public.locations (
   address     text not null,
   hours       text not null,
   phone       text not null,
+  email       text not null default '',
   pool        int  not null default 0,
   maps_embed  text,
   sort        int  not null default 0
@@ -88,12 +89,12 @@ on conflict (id) do nothing;
 -- ============================================================
 
 -- ---------- LOCATIONS ----------
-insert into public.locations (id, name, address, hours, phone, pool, maps_embed, sort) values
-  ('cuneo', 'Cuneo', $$Via dello Sport 12, Cuneo (CN)$$, $$Lun–Ven 6:30–22:00 · Sab 8:00–20:00 · Dom 9:00–13:00$$, '+39 0171 123 456', 78, $$https://www.google.com/maps?q=Via%20dello%20Sport%2012%2C%20Cuneo&output=embed$$, 1),
-  ('alba', 'Alba', $$Corso Piave 45, Alba (CN)$$, $$Lun–Ven 7:00–22:00 · Sab 8:00–19:00 · Dom chiuso$$, '+39 0173 234 567', 62, $$https://www.google.com/maps?q=Corso%20Piave%2045%2C%20Alba%20CN&output=embed$$, 2),
-  ('savigliano', 'Savigliano', $$Via Torino 88, Savigliano (CN)$$, $$Lun–Ven 6:30–21:30 · Sab 9:00–18:00 · Dom 9:00–12:00$$, '+39 0172 345 678', 45, $$https://www.google.com/maps?q=Via%20Torino%2088%2C%20Savigliano%20CN&output=embed$$, 3),
-  ('sommariva', 'Sommariva Perno', $$Piazza Marconi 3, Sommariva Perno (CN)$$, $$Lun–Ven 8:00–21:00 · Sab 9:00–17:00 · Dom chiuso$$, '+39 0172 456 789', 30, $$https://www.google.com/maps?q=Piazza%20Marconi%203%2C%20Sommariva%20Perno%20CN&output=embed$$, 4),
-  ('asti', 'Asti', $$Via Alfieri 21, Asti (AT)$$, $$Lun–Ven 7:00–22:00 · Sab 8:00–20:00 · Dom 9:00–13:00$$, '+39 0141 567 890', 90, $$https://www.google.com/maps?q=Via%20Alfieri%2021%2C%20Asti&output=embed$$, 5)
+insert into public.locations (id, name, address, hours, phone, email, pool, maps_embed, sort) values
+  ('cuneo', 'Cuneo', $$Via Porta Mondovì, 7, 12100 Cuneo (CN)$$, $$Tutti i giorni 8:30–22:00 (segreteria)$$, '+39 0171 66469', 'infocuneo@centrosportivoroero.it', 78, $$https://www.google.com/maps?q=Via%20Porta%20Mondov%C3%AC%207%2C%2012100%20Cuneo&output=embed$$, 1),
+  ('alba', 'Alba', $$Corso Piave 45, Alba (CN)$$, $$Lun–Ven 7:00–22:00 · Sab 8:00–19:00 · Dom chiuso$$, '+39 0173 234 567', '', 62, $$https://www.google.com/maps?q=Corso%20Piave%2045%2C%20Alba%20CN&output=embed$$, 2),
+  ('savigliano', 'Savigliano', $$Via Torino 88, Savigliano (CN)$$, $$Lun–Ven 6:30–21:30 · Sab 9:00–18:00 · Dom 9:00–12:00$$, '+39 0172 345 678', '', 45, $$https://www.google.com/maps?q=Via%20Torino%2088%2C%20Savigliano%20CN&output=embed$$, 3),
+  ('sommariva', 'Sommariva Perno', $$Piazza Marconi 3, Sommariva Perno (CN)$$, $$Lun–Ven 8:00–21:00 · Sab 9:00–17:00 · Dom chiuso$$, '+39 0172 456 789', '', 30, $$https://www.google.com/maps?q=Piazza%20Marconi%203%2C%20Sommariva%20Perno%20CN&output=embed$$, 4),
+  ('asti', 'Asti', $$Via Alfieri 21, Asti (AT)$$, $$Lun–Ven 7:00–22:00 · Sab 8:00–20:00 · Dom 9:00–13:00$$, '+39 0141 567 890', '', 90, $$https://www.google.com/maps?q=Via%20Alfieri%2021%2C%20Asti&output=embed$$, 5)
 on conflict (id) do nothing;
 
 -- ---------- NEWS  (location_ids vuoto = tutte le sedi) ----------

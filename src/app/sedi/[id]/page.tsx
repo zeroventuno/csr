@@ -123,6 +123,17 @@ export default async function SedePage({ params }: { params: { id: string } }) {
                   {loc.phone}
                 </a>
               </div>
+              {loc.email && (
+                <div className="flex gap-3 text-[15px] text-text">
+                  <i className="ph ph-envelope-simple mt-0.5 text-xl text-aqua" />
+                  <a
+                    href={`mailto:${loc.email}`}
+                    className="break-all font-semibold text-aqua"
+                  >
+                    {loc.email}
+                  </a>
+                </div>
+              )}
             </div>
 
             {/* pool availability */}
