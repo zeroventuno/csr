@@ -1,8 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { Location } from "@/lib/types";
+import { getPublicAvailability } from "@/lib/vasche";
+import type { AvailabilitySnapshot } from "@/lib/vasche-types";
+
+function ago(ms: number): string {
+  const s = Math.floor(ms / 1000);
+  if (s < 10) return "ora";
+  if (s < 60) return `${s} sec fa`;
+  return `${Math.floor(s / 60)} min fa`;
+}
 
 export default function LocationSwitcher({
   locations,
@@ -10,8 +19,48 @@ export default function LocationSwitcher({
   locations: Location[];
 }) {
   const [active, setActive] = useState(0);
+  const [avail, setAvail] = useState<AvailabilitySnapshot | null>(null);
+  const [fetchedAt, setFetchedAt] = useState(Date.now());
+  const [, setTick] = useState(0);
+
   const loc = locations[active] || locations[0];
+  const locId = loc?.id;
+
+  // Disponibilità reale (sistema corsie) per la sede attiva — polling 20s.
+  useEffect(() => {
+    if (!locId) return;
+    let alive = true;
+    setAvail(null);
+    const run = async () => {
+      try {
+        const s = await getPublicAvailability(locId);
+        if (alive) {
+          setAvail(s);
+          setFetchedAt(Date.now());
+        }
+      } catch {
+        /* mantiene fallback statico */
+      }
+    };
+    run();
+    const iv = setInterval(run, 20000);
+    const tick = setInterval(() => alive && setTick((t) => t + 1), 5000);
+    return () => {
+      alive = false;
+      clearInterval(iv);
+      clearInterval(tick);
+    };
+  }, [locId]);
+
   if (!loc) return null;
+
+  const live =
+    avail && avail.ok && avail.pools.length > 0 ? avail : null;
+  const totalFree = live
+    ? live.pools.reduce((s, p) => s + p.free, 0)
+    : 0;
+  const totalCap = live ? live.pools.reduce((s, p) => s + p.total, 0) : 0;
+  const freePct = totalCap > 0 ? Math.round((totalFree / totalCap) * 100) : 0;
 
   return (
     <section id="info" className="relative z-10 mx-auto -mt-[44px] max-w-site px-6">
@@ -41,30 +90,71 @@ export default function LocationSwitcher({
         <div className="grid grid-cols-1 gap-px bg-border lg:grid-cols-[1.1fr_1fr_1fr]">
           {/* pool availability */}
           <div className="bg-surface px-[26px] py-6">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted">
-              <i className="ph ph-drop text-aqua" />
-              Disponibilità Vasche
-            </div>
-            <div className="mt-3.5 flex items-end gap-3.5">
-              <div className="head text-[54px] font-extrabold leading-[0.9] text-text">
-                {loc.pool}
-                <span className="text-2xl text-muted">%</span>
-              </div>
-              <div className="pb-2 text-[13px] text-muted">
-                posti liberi
-                <br />
-                aggiornato in tempo reale
-              </div>
-            </div>
-            <div className="mt-4 h-2.5 overflow-hidden rounded-md bg-bg">
-              <div
-                className="h-full rounded-md bg-gradient-to-r from-blue to-aqua transition-[width] duration-500"
-                style={{ width: `${loc.pool}%` }}
-              />
-            </div>
-            <div className="mt-2.5 font-mono text-[11px] text-muted">
-              [ widget live · src: pool-availability/{loc.id} ]
-            </div>
+            {live ? (
+              <>
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-aqua opacity-60" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-aqua" />
+                  </span>
+                  Corsie libere · in tempo reale
+                </div>
+                <div className="mt-3.5 flex items-end gap-3.5">
+                  <div className="head text-[54px] font-extrabold leading-[0.9] text-text">
+                    {totalFree}
+                  </div>
+                  <div className="pb-2 text-[13px] text-muted">
+                    posti liberi
+                    <br />
+                    su {totalCap} totali
+                  </div>
+                </div>
+                <div className="mt-4 h-2.5 overflow-hidden rounded-md bg-bg">
+                  <div
+                    className="h-full rounded-md bg-gradient-to-r from-blue to-aqua transition-[width] duration-500"
+                    style={{ width: `${freePct}%` }}
+                  />
+                </div>
+                <Link
+                  href={`/sedi/${loc.id}`}
+                  className="mt-2.5 inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-muted transition hover:text-aqua"
+                >
+                  aggiornato {ago(Date.now() - fetchedAt)} · dettagli
+                  <i className="ph ph-arrow-right" />
+                </Link>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted">
+                  <i className="ph ph-drop text-aqua" />
+                  Disponibilità Vasche
+                </div>
+                <div className="mt-3.5 flex items-end gap-3.5">
+                  <div className="head text-[54px] font-extrabold leading-[0.9] text-text">
+                    {loc.pool}
+                    <span className="text-2xl text-muted">%</span>
+                  </div>
+                  <div className="pb-2 text-[13px] text-muted">
+                    posti liberi
+                    <br />
+                    indicativo
+                  </div>
+                </div>
+                <div className="mt-4 h-2.5 overflow-hidden rounded-md bg-bg">
+                  <div
+                    className="h-full rounded-md bg-gradient-to-r from-blue to-aqua transition-[width] duration-500"
+                    style={{ width: `${loc.pool}%` }}
+                  />
+                </div>
+                <Link
+                  href={`/sedi/${loc.id}`}
+                  className="mt-2.5 inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-muted transition hover:text-aqua"
+                >
+                  Pagina della sede
+                  <i className="ph ph-arrow-right" />
+                </Link>
+              </>
+            )}
           </div>
 
           {/* hours */}
