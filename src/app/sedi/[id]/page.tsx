@@ -104,7 +104,7 @@ export default async function SedePage({ params }: { params: { id: string } }) {
 
       {/* AVVISO DATATO (prossimo evento/blocco) */}
       {nextNotice && (
-        <div className="mx-auto -mt-7 max-w-site px-6">
+        <div className="relative z-10 mx-auto -mt-7 max-w-site px-6">
           <Link
             href={nextNotice.href || `/sedi/${loc.id}#calendario`}
             className="flex flex-wrap items-center gap-3 rounded-[16px] border border-border bg-surface p-4 shadow-csr transition hover:border-aqua"
