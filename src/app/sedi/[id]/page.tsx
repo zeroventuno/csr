@@ -6,6 +6,7 @@ import { getDB } from "@/lib/db";
 import { CATEGORIES } from "@/lib/categories";
 import { matchesLocation } from "@/lib/loc";
 import { formatDate, dayNumber, monthAbbr } from "@/lib/format";
+import AvailabilityWidget from "@/components/vasche/AvailabilityWidget";
 
 export const dynamic = "force-dynamic";
 
@@ -178,6 +179,9 @@ export default async function SedePage({ params }: { params: { id: string } }) {
           </div>
         </div>
       </section>
+
+      {/* DISPONIBILITÀ CORSIE (tempo reale) */}
+      <AvailabilityWidget locationId={loc.id} />
 
       {/* NUOTO LIBERO — ORARI & TARIFFE */}
       {loc.nuotoLibero && (
