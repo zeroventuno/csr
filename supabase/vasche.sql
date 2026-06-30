@@ -42,11 +42,19 @@ alter table public.lanes    enable row level security;
 alter table public.checkins enable row level security;
 
 -- ---------- SEED (sede Cuneo: 4 esterne + 8 interne A + 8 interne B = 20) ----------
-insert into public.pools (location_id, name, length_meters, side, sort) values
-  ('cuneo', 'Externa', 50, null, 1),
+-- idempotente: non duplica le vasche se eseguito più volte
+insert into public.pools (location_id, name, length_meters, side, sort)
+select v.location_id, v.name, v.length_meters, v.side, v.sort
+from (values
+  ('cuneo', 'Externa', 50, null::text, 1),
   ('cuneo', 'Interna', 25, 'A', 2),
   ('cuneo', 'Interna', 25, 'B', 3)
-on conflict do nothing;
+) as v(location_id, name, length_meters, side, sort)
+where not exists (
+  select 1 from public.pools p
+  where p.location_id = v.location_id and p.name = v.name
+    and p.side is not distinct from v.side
+);
 
 -- Esterna 50m — 4 corsie
 insert into public.lanes (pool_id, lane_number, pace, max_capacity)
