@@ -53,8 +53,8 @@ export default function AvailabilityWidget({
     };
   }, [load]);
 
-  // niente da mostrare se il sistema non è attivo o non ci sono vasche
-  if (snap && (!snap.ok || snap.pools.length === 0)) return null;
+  // niente da mostrare finché non arrivano dati reali (o se il sistema non è attivo)
+  if (!snap || !snap.ok || snap.pools.length === 0) return null;
 
   return (
     <section className="mx-auto max-w-site px-6 pb-6">
