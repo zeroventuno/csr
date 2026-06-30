@@ -9,7 +9,7 @@ const NAV = [
   { key: "sedi", label: "Sedi", href: "/sedi" },
   { key: "corsi", label: "Corsi", href: "/corsi" },
   { key: "news", label: "News", href: "/news" },
-  { key: "contatti", label: "Contatti", href: "/#contatti" },
+  { key: "contatti", label: "Contatti", href: "/contatti" },
 ];
 
 export default function Header({ active = "home" }: { active?: string }) {
