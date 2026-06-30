@@ -50,6 +50,7 @@ export interface LaneDetail {
   pace: Pace;
   capacity: number;
   active: number;
+  blocked: boolean;
 }
 export interface ReceptionPool {
   id: string;

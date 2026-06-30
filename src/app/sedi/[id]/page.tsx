@@ -5,8 +5,11 @@ import Footer from "@/components/Footer";
 import { getDB } from "@/lib/db";
 import { CATEGORIES } from "@/lib/categories";
 import { matchesLocation } from "@/lib/loc";
-import { formatDate, dayNumber, monthAbbr } from "@/lib/format";
+import { formatDate, formatDayMonth } from "@/lib/format";
 import AvailabilityWidget from "@/components/vasche/AvailabilityWidget";
+import CalendarView from "@/components/CalendarView";
+import { getCalendarEntries, getNextNotice } from "@/lib/blocks";
+import { CAL_META } from "@/lib/blocks-types";
 
 export const dynamic = "force-dynamic";
 
@@ -28,11 +31,10 @@ export default async function SedePage({ params }: { params: { id: string } }) {
     .sort((a, b) => (a.date < b.date ? 1 : -1))
     .slice(0, 6);
 
-  const today = new Date().toISOString().slice(0, 10);
-  const events = db.events
-    .filter((e) => matchesLocation(e.locationIds, loc.id) && e.date >= today)
-    .sort((a, b) => (a.date < b.date ? -1 : 1))
-    .slice(0, 6);
+  const [calEntries, nextNotice] = await Promise.all([
+    getCalendarEntries(loc.id),
+    getNextNotice(loc.id),
+  ]);
 
   const courseCats = CATEGORIES.map((c) => ({
     ...c,
@@ -99,6 +101,35 @@ export default async function SedePage({ params }: { params: { id: string } }) {
           </div>
         </div>
       </section>
+
+      {/* AVVISO DATATO (prossimo evento/blocco) */}
+      {nextNotice && (
+        <div className="mx-auto -mt-7 max-w-site px-6">
+          <Link
+            href={nextNotice.href || `/sedi/${loc.id}#calendario`}
+            className="flex flex-wrap items-center gap-3 rounded-[16px] border border-border bg-surface p-4 shadow-csr transition hover:border-aqua"
+          >
+            <span
+              className="grid h-11 w-11 flex-none place-items-center rounded-[12px] text-xl text-white"
+              style={{ background: CAL_META[nextNotice.type].color }}
+            >
+              <i className={`ph ${nextNotice.icon}`} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="text-[12px] font-bold uppercase tracking-[0.08em] text-muted">
+                {CAL_META[nextNotice.type].label} · prossimo
+              </div>
+              <div className="text-[15px] font-semibold text-text">
+                {formatDayMonth(nextNotice.date)}
+                {nextNotice.time ? `, ${nextNotice.time}` : ""}
+                {nextNotice.endTime ? `–${nextNotice.endTime}` : ""} ·{" "}
+                {nextNotice.title}
+              </div>
+            </div>
+            <i className="ph ph-arrow-right text-muted" />
+          </Link>
+        </div>
+      )}
 
       {/* INFO + MAP */}
       <section id="contatti-sede" className="mx-auto max-w-site px-6 py-14">
@@ -351,43 +382,21 @@ export default async function SedePage({ params }: { params: { id: string } }) {
         )}
       </section>
 
-      {/* EVENTI */}
-      {events.length > 0 && (
-        <section className="mx-auto max-w-site px-6 pb-16">
+      {/* CALENDARIO */}
+      <section id="calendario" className="mx-auto max-w-site px-6 pb-16 pt-6">
+        <div className="mb-6">
           <span className="text-sm font-bold uppercase tracking-[0.12em] text-aqua">
-            Eventi
+            Calendario
           </span>
-          <h2 className="mb-6 mt-1.5 text-[34px] text-text">
-            Prossimi appuntamenti
+          <h2 className="mt-1.5 text-[34px] text-text">
+            Appuntamenti di {loc.name}
           </h2>
-          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
-            {events.map((e) => (
-              <div
-                key={e.id}
-                className="flex items-center gap-4 rounded-[16px] border border-border bg-surface p-4"
-              >
-                <div className="flex-none text-center" style={{ width: 56 }}>
-                  <div className="head text-[28px] font-extrabold leading-none text-aqua">
-                    {dayNumber(e.date)}
-                  </div>
-                  <div className="text-[11px] uppercase text-muted">
-                    {monthAbbr(e.date)}
-                  </div>
-                </div>
-                <div className="min-w-0">
-                  <div className="text-[15px] font-semibold text-text">
-                    {e.title}
-                  </div>
-                  <div className="mt-0.5 text-[12.5px] text-muted">
-                    <i className="ph ph-clock" /> {e.time}
-                    {e.description ? ` · ${e.description}` : ""}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+          <p className="mt-1 text-muted">
+            Eventi, avvisi e blocchi corsie (es. water polo) in un&apos;unica vista.
+          </p>
+        </div>
+        <CalendarView entries={calEntries} />
+      </section>
 
       <Footer locations={db.locations} />
     </>

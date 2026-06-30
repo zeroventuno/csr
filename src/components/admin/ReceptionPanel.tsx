@@ -101,7 +101,13 @@ export default function ReceptionPanel() {
                   return (
                     <div
                       key={l.id}
-                      className="rounded-[13px] border border-border bg-surface-2 p-3.5"
+                      className="rounded-[13px] border p-3.5"
+                      style={{
+                        borderColor: l.blocked ? "var(--red)" : "var(--border)",
+                        background: l.blocked
+                          ? "rgba(214,72,92,.07)"
+                          : "var(--surface-2)",
+                      }}
                     >
                       <div className="flex items-center justify-between">
                         <span className="flex items-center gap-2">
@@ -112,9 +118,15 @@ export default function ReceptionPanel() {
                             {paceLabel(l.pace)}
                           </span>
                         </span>
-                        <span className="head text-[18px] font-extrabold text-text">
-                          {l.active}/{l.capacity}
-                        </span>
+                        {l.blocked ? (
+                          <span className="flex items-center gap-1 text-[11px] font-bold uppercase text-red">
+                            <i className="ph ph-prohibit" /> Bloccata
+                          </span>
+                        ) : (
+                          <span className="head text-[18px] font-extrabold text-text">
+                            {l.active}/{l.capacity}
+                          </span>
+                        )}
                       </div>
                       <div className="mt-2.5 h-2 overflow-hidden rounded-md bg-bg">
                         <div

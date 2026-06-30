@@ -37,9 +37,27 @@ create index if not exists checkins_lane_active_idx
 create index if not exists checkins_expires_idx
   on public.checkins (expires_at) where status = 'ativo';
 
-alter table public.pools    enable row level security;
-alter table public.lanes    enable row level security;
-alter table public.checkins enable row level security;
+-- blocchi corsie (es. water polo): riservano corsie in una fascia oraria
+create table if not exists public.lane_blocks (
+  id          uuid primary key default gen_random_uuid(),
+  location_id text not null references public.locations(id) on delete cascade,
+  pool_id     uuid not null references public.pools(id) on delete cascade,
+  lane_ids    uuid[] not null default '{}',
+  block_date  date not null,
+  start_time  time not null,
+  end_time    time not null,
+  title       text not null,
+  note        text not null default '',
+  news_slug   text not null default '',
+  created_at  timestamptz not null default now()
+);
+create index if not exists lane_blocks_loc_date_idx
+  on public.lane_blocks (location_id, block_date);
+
+alter table public.pools       enable row level security;
+alter table public.lanes       enable row level security;
+alter table public.checkins    enable row level security;
+alter table public.lane_blocks enable row level security;
 
 -- ---------- SEED (sede Cuneo: 4 esterne + 8 interne A + 8 interne B = 20) ----------
 -- idempotente: non duplica le vasche se eseguito più volte

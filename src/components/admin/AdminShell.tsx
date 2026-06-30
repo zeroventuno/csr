@@ -13,6 +13,7 @@ const NAV = [
   { id: "courses", href: "/admin/courses", label: "Corsi", icon: "ph-person-simple-swim", badgeKey: "courses" },
   { id: "events", href: "/admin/events", label: "Eventi", icon: "ph-calendar-dots", badgeKey: "events" },
   { id: "vasche", href: "/admin/vasche", label: "Disponibilità Vasche", icon: "ph-swimming-pool" },
+  { id: "calendario", href: "/admin/calendario", label: "Calendario / Blocchi", icon: "ph-calendar-check" },
   { id: "loc", href: "/admin/locations", label: "Sedi", icon: "ph-map-pin" },
   { id: "media", href: "/admin/media", label: "Media Library", icon: "ph-images" },
 ];
@@ -23,6 +24,7 @@ const TITLES: Record<string, [string, string]> = {
   "/admin/courses": ["Gestione Corsi", "CRUD dei corsi e delle attività"],
   "/admin/events": ["Gestione Eventi", "Calendario e creazione eventi"],
   "/admin/vasche": ["Disponibilità Vasche", "Check-in corsie in tempo reale"],
+  "/admin/calendario": ["Calendario / Blocchi", "Blocchi corsie (water polo, eventi…)"],
   "/admin/locations": ["Gestione Sedi", "Informazioni delle 5 piscine"],
   "/admin/media": ["Media Library", "Carica e organizza i file"],
 };

@@ -5,6 +5,9 @@ import Link from "next/link";
 import type { Location } from "@/lib/types";
 import { getPublicAvailability } from "@/lib/vasche";
 import type { AvailabilitySnapshot } from "@/lib/vasche-types";
+import { getNextNotice } from "@/lib/blocks";
+import { CAL_META, type CalendarEntry } from "@/lib/blocks-types";
+import { formatDayMonth } from "@/lib/format";
 
 function ago(ms: number): string {
   const s = Math.floor(ms / 1000);
@@ -20,11 +23,25 @@ export default function LocationSwitcher({
 }) {
   const [active, setActive] = useState(0);
   const [avail, setAvail] = useState<AvailabilitySnapshot | null>(null);
+  const [notice, setNotice] = useState<CalendarEntry | null>(null);
   const [fetchedAt, setFetchedAt] = useState(Date.now());
   const [, setTick] = useState(0);
 
   const loc = locations[active] || locations[0];
   const locId = loc?.id;
+
+  // prossimo avviso datato (evento/blocco) per la sede attiva
+  useEffect(() => {
+    if (!locId) return;
+    let alive = true;
+    setNotice(null);
+    getNextNotice(locId)
+      .then((n) => alive && setNotice(n))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [locId]);
 
   // Disponibilità reale (sistema corsie) per la sede attiva — polling 20s.
   useEffect(() => {
@@ -166,6 +183,22 @@ export default function LocationSwitcher({
             <div className="mt-3.5 text-[15px] leading-[1.8] text-text">
               {loc.hours}
             </div>
+            {notice && (
+              <Link
+                href={notice.href || `/sedi/${loc.id}#calendario`}
+                className="mt-3 flex items-start gap-2 rounded-[11px] border px-3 py-2 transition hover:border-aqua"
+                style={{ borderColor: "var(--border)" }}
+              >
+                <i
+                  className={`ph ${notice.icon} mt-0.5`}
+                  style={{ color: CAL_META[notice.type].color }}
+                />
+                <span className="text-[12.5px] leading-[1.35] text-text">
+                  <b>{formatDayMonth(notice.date)}</b>
+                  {notice.time ? `, ${notice.time}` : ""} — {notice.title}
+                </span>
+              </Link>
+            )}
           </div>
 
           {/* contact */}

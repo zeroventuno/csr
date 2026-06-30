@@ -2,6 +2,7 @@
 
 import { supabaseAdmin } from "./supabase";
 import { getSession } from "./session";
+import { activeBlockedLaneIds } from "./blocks";
 import type {
   Pace,
   AvailabilitySnapshot,
@@ -12,7 +13,7 @@ import type {
   LaneDetail,
   CheckinResult,
 } from "./vasche-types";
-import { PACES } from "./vasche-types";
+import { PACES, poolLabel } from "./vasche-types";
 
 const DEFAULT_LOCATION = "cuneo";
 
@@ -76,6 +77,22 @@ async function loadPoolsAndLanes(locationId: string) {
   return { sb, poolRows, laneRows };
 }
 
+/** Vasche con le rispettive corsie (per l'admin: creazione blocchi). */
+export async function getPoolsWithLanes(locationId: string = DEFAULT_LOCATION) {
+  try {
+    const { poolRows, laneRows } = await loadPoolsAndLanes(locationId);
+    return poolRows.map((p) => ({
+      id: p.id,
+      label: poolLabel(p.name, p.side),
+      lanes: laneRows
+        .filter((l) => l.pool_id === p.id)
+        .map((l) => ({ id: l.id, laneNumber: l.lane_number, pace: l.pace })),
+    }));
+  } catch {
+    return [];
+  }
+}
+
 /* ===================== DISPONIBILITÀ PUBBLICA ===================== */
 
 export async function getPublicAvailability(
@@ -87,9 +104,13 @@ export async function getPublicAvailability(
       sb,
       laneRows.map((l) => l.id)
     );
+    const blocked = new Set(await activeBlockedLaneIds(locationId));
 
     const pools: PoolAvail[] = poolRows.map((p) => {
-      const lanes = laneRows.filter((l) => l.pool_id === p.id);
+      // le corsie bloccate ora non contano nella disponibilità
+      const lanes = laneRows.filter(
+        (l) => l.pool_id === p.id && !blocked.has(l.id)
+      );
       const paces: PaceAvail[] = PACES.map((pc) => {
         const ls = lanes.filter((l) => l.pace === pc.id);
         const total = ls.reduce((s, l) => s + l.max_capacity, 0);
@@ -137,9 +158,18 @@ export async function checkin(
       .eq("pace", pace)
       .order("lane_number", { ascending: true });
     if (lErr) throw lErr;
-    const laneRows = (lanes || []) as LaneRow[];
-    if (laneRows.length === 0)
+    const allLanes = (lanes || []) as LaneRow[];
+    if (allLanes.length === 0)
       return { ok: false, error: "Nessuna corsia per questo ritmo." };
+
+    // esclude le corsie bloccate ora (es. water polo)
+    const blocked = new Set(await activeBlockedLaneIds(pool.location_id));
+    const laneRows = allLanes.filter((l) => !blocked.has(l.id));
+    if (laneRows.length === 0)
+      return {
+        ok: false,
+        error: "Corsie occupate da un evento in questo orario.",
+      };
 
     const counts = await activeByLane(
       sb,
@@ -212,6 +242,7 @@ export async function getReceptionData(
       sb,
       laneRows.map((l) => l.id)
     );
+    const blocked = new Set(await activeBlockedLaneIds(locationId));
     let totalInWater = 0;
 
     const pools: ReceptionPool[] = poolRows.map((p) => {
@@ -228,6 +259,7 @@ export async function getReceptionData(
             pace: l.pace,
             capacity: l.max_capacity,
             active,
+            blocked: blocked.has(l.id),
           };
         });
       return { id: p.id, name: p.name, side: p.side, lanes };
