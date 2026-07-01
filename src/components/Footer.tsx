@@ -118,7 +118,11 @@ export default function Footer({ locations = [] }: { locations?: Location[] }) {
 
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-site flex-wrap items-center justify-between gap-3.5 px-6 py-[18px] text-[13px] text-white/60">
-          <span>© 2026 Centro Sportivo Roero S.S.D. · P.IVA 02345670041</span>
+          <span>
+            © 2026 Centro Sportivo Roero S.S.D. · P.IVA 02345670041
+            <span className="mx-2 text-white/25">·</span>
+            <span className="text-white/50">Sito web realizzato da Zero Ventuno</span>
+          </span>
           <div className="flex flex-wrap gap-5">
             <a href="#" className="transition hover:text-aqua">
               Privacy Policy
