@@ -87,6 +87,7 @@ export default function ContactForm({
             value={form.name}
             onChange={(e) => set("name", e.target.value)}
             required
+            autoComplete="name"
             className={inputCls}
           />
         </div>
@@ -97,6 +98,7 @@ export default function ContactForm({
             value={form.email}
             onChange={(e) => set("email", e.target.value)}
             required
+            autoComplete="email"
             className={inputCls}
           />
         </div>
@@ -108,6 +110,7 @@ export default function ContactForm({
           <input
             value={form.phone}
             onChange={(e) => set("phone", e.target.value)}
+            autoComplete="tel"
             className={inputCls}
           />
         </div>
