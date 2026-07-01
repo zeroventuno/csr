@@ -210,20 +210,78 @@ export async function saveEvent(input: EventInput) {
     title: input.title,
     date: input.date,
     time: input.time,
+    end_time: input.endTime || null,
     location_ids: input.locationIds,
     description: input.description,
     image: input.image || null,
+    pool_id: input.poolId || null,
+    lane_ids: input.laneIds || [],
   };
 
-  if (input.id) {
-    const { error } = await sb.from("events").update(row).eq("id", input.id);
+  let eventId = input.id;
+  if (eventId) {
+    const { error } = await sb.from("events").update(row).eq("id", eventId);
     if (error) throw error;
   } else {
-    const { error } = await sb.from("events").insert(row);
+    const { data, error } = await sb
+      .from("events")
+      .insert(row)
+      .select("id")
+      .single();
     if (error) throw error;
+    eventId = data.id;
   }
+
+  await syncEventLaneBlock(sb, eventId!, input);
+
   revalidatePublic();
   revalidateAdmin();
+}
+
+/** Crea/aggiorna/rimuove il blocco corsie collegato a un evento. */
+async function syncEventLaneBlock(
+  sb: ReturnType<typeof supabaseAdmin>,
+  eventId: string,
+  input: EventInput
+) {
+  const blocking = !!input.poolId && input.laneIds.length > 0 && !!input.endTime;
+
+  if (!blocking) {
+    await sb.from("lane_blocks").delete().eq("event_id", eventId);
+    return;
+  }
+
+  const { data: pool } = await sb
+    .from("pools")
+    .select("location_id")
+    .eq("id", input.poolId)
+    .maybeSingle();
+  if (!pool) return;
+
+  const blockRow = {
+    location_id: pool.location_id,
+    pool_id: input.poolId,
+    lane_ids: input.laneIds,
+    block_date: input.date,
+    start_time: input.time,
+    end_time: input.endTime,
+    title: input.title,
+    note: input.description || "",
+    news_slug: "",
+    event_id: eventId,
+  };
+
+  const { data: existing } = await sb
+    .from("lane_blocks")
+    .select("id")
+    .eq("event_id", eventId)
+    .maybeSingle();
+
+  if (existing) {
+    await sb.from("lane_blocks").update(blockRow).eq("id", existing.id);
+  } else {
+    await sb.from("lane_blocks").insert(blockRow);
+  }
 }
 
 export async function deleteEvent(id: string) {

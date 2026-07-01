@@ -49,9 +49,12 @@ export interface EventItem {
   title: string;
   date: string; // ISO date
   time: string;
+  endTime: string; // HH:MM, vuoto se non impostato
   locationIds: string[]; // ids sedi collegate; vuoto = tutte le sedi
   description: string;
   image?: string;
+  poolId: string; // vasca occupata (opzionale, blocca le corsie)
+  laneIds: string[]; // corsie occupate (opzionale)
   createdAt: string;
 }
 
@@ -103,9 +106,12 @@ export interface EventInput {
   title: string;
   date: string;
   time: string;
+  endTime: string;
   locationIds: string[];
   description: string;
   image?: string;
+  poolId: string;
+  laneIds: string[];
 }
 
 export interface LocationInput {

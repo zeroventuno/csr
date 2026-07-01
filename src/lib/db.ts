@@ -65,9 +65,12 @@ export function mapEvent(r: any): EventItem {
     title: r.title,
     date: typeof r.date === "string" ? r.date.slice(0, 10) : r.date,
     time: r.time,
+    endTime: r.end_time || "",
     locationIds: r.location_ids || [],
     description: r.description || "",
     image: r.image || "",
+    poolId: r.pool_id || "",
+    laneIds: r.lane_ids || [],
     createdAt: r.created_at,
   };
 }

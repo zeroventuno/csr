@@ -49,10 +49,18 @@ create table if not exists public.lane_blocks (
   title       text not null,
   note        text not null default '',
   news_slug   text not null default '',
+  event_id    uuid references public.events(id) on delete cascade,
   created_at  timestamptz not null default now()
 );
 create index if not exists lane_blocks_loc_date_idx
   on public.lane_blocks (location_id, block_date);
+create index if not exists lane_blocks_event_idx
+  on public.lane_blocks (event_id) where event_id is not null;
+
+-- collega gli eventi (schema.sql) alla possibilità di occupare corsie
+alter table public.events add column if not exists end_time text not null default '';
+alter table public.events add column if not exists pool_id uuid references public.pools(id) on delete set null;
+alter table public.events add column if not exists lane_ids uuid[] not null default '{}';
 
 alter table public.pools       enable row level security;
 alter table public.lanes       enable row level security;

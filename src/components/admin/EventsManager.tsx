@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import SlideOver, { fieldLabel, fieldInput, fieldArea } from "./SlideOver";
 import LocationPicker from "./LocationPicker";
+import PoolLanePicker, { type PoolWithLanes } from "./PoolLanePicker";
 import { saveEvent, deleteEvent } from "@/lib/actions";
 import type { Role, EventInput } from "@/lib/types";
 
@@ -12,10 +13,14 @@ export interface EventRow {
   title: string;
   date: string; // ISO YYYY-MM-DD
   time: string;
+  endTime: string;
   locationIds: string[];
   locationLabel: string;
   description: string;
   image?: string;
+  poolId: string;
+  laneIds: string[];
+  blockLabel: string; // "" se nessun blocco, altrimenti "Vasca X · corsie 1, 2"
 }
 
 const WEEK = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
@@ -35,10 +40,12 @@ function iso(y: number, m: number, d: number) {
 export default function EventsManager({
   rows,
   locations,
+  pools,
   role,
 }: {
   rows: EventRow[];
   locations: { id: string; name: string }[];
+  pools: PoolWithLanes[];
   role: Role;
 }) {
   const router = useRouter();
@@ -56,11 +63,15 @@ export default function EventsManager({
     title: "",
     date: iso(year, month, 1),
     time: "10:00",
+    endTime: "",
     locationIds: [],
     description: "",
     image: "",
+    poolId: "",
+    laneIds: [],
   };
   const [form, setForm] = useState<EventInput>(emptyForm);
+  const [blockEnabled, setBlockEnabled] = useState(false);
 
   const eventDays = useMemo(() => {
     const set = new Set<number>();
@@ -105,6 +116,7 @@ export default function EventsManager({
       date: iso(year, month, day || 1),
       locationIds: [],
     });
+    setBlockEnabled(false);
     setOpen(true);
   }
   function openEdit(e: EventRow) {
@@ -113,10 +125,14 @@ export default function EventsManager({
       title: e.title,
       date: e.date,
       time: e.time,
+      endTime: e.endTime,
       locationIds: e.locationIds,
       description: e.description,
       image: e.image || "",
+      poolId: e.poolId,
+      laneIds: e.laneIds,
     });
+    setBlockEnabled(!!e.poolId && e.laneIds.length > 0);
     setOpen(true);
   }
 
@@ -125,9 +141,22 @@ export default function EventsManager({
       alert("Inserisci il titolo dell'evento.");
       return;
     }
+    if (blockEnabled) {
+      if (!form.poolId || form.laneIds.length === 0) {
+        alert("Seleziona la vasca e almeno una corsia, oppure disattiva il blocco.");
+        return;
+      }
+      if (!form.endTime || form.endTime <= form.time) {
+        alert("Inserisci un orario di fine successivo all'inizio.");
+        return;
+      }
+    }
+    const payload: EventInput = blockEnabled
+      ? form
+      : { ...form, poolId: "", laneIds: [] };
     setPending(true);
     try {
-      await saveEvent(form);
+      await saveEvent(payload);
       setOpen(false);
       router.refresh();
     } catch (err: any) {
@@ -247,6 +276,11 @@ export default function EventsManager({
                       <i className="ph ph-clock" /> {e.time} ·{" "}
                       <i className="ph ph-map-pin" /> {e.locationLabel}
                     </div>
+                    {e.blockLabel && (
+                      <div className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-red">
+                        <i className="ph ph-prohibit" /> {e.blockLabel}
+                      </div>
+                    )}
                   </div>
                   <div className="flex gap-1.5">
                     <button
@@ -326,6 +360,46 @@ export default function EventsManager({
             />
           </div>
         </div>
+
+        <div className="rounded-[14px] border border-border bg-surface-2 p-4">
+          <label className="flex items-center gap-2.5 text-[14px] font-semibold text-text">
+            <input
+              type="checkbox"
+              checked={blockEnabled}
+              onChange={(e) => setBlockEnabled(e.target.checked)}
+              className="h-4 w-4 accent-aqua"
+            />
+            Occupa corsie durante l&apos;evento
+          </label>
+          <p className="mt-1 text-[12px] text-muted">
+            Riduce la disponibilità in tempo reale e impedisce al kiosk di
+            assegnare quelle corsie per tutta la durata dell&apos;evento.
+          </p>
+
+          {blockEnabled && (
+            <div className="mt-3.5 flex flex-col gap-3.5">
+              <div>
+                <label className={fieldLabel}>Ora fine</label>
+                <input
+                  type="time"
+                  value={form.endTime}
+                  onChange={(e) => set("endTime", e.target.value)}
+                  className={fieldInput}
+                />
+              </div>
+              <PoolLanePicker
+                pools={pools}
+                poolId={form.poolId}
+                laneIds={form.laneIds}
+                onChangePool={(poolId) =>
+                  setForm((f) => ({ ...f, poolId, laneIds: [] }))
+                }
+                onChangeLanes={(laneIds) => setForm((f) => ({ ...f, laneIds }))}
+              />
+            </div>
+          )}
+        </div>
+
         <LocationPicker
           value={form.locationIds}
           locations={locations}

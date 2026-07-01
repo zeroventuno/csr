@@ -13,6 +13,7 @@ export interface LaneBlock {
   title: string;
   note: string;
   newsSlug: string;
+  eventId: string | null; // se impostato, il blocco è generato da un evento (non gestibile qui)
 }
 
 export interface BlockInput {

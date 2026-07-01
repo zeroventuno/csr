@@ -3,16 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import SlideOver, { fieldLabel, fieldInput, fieldArea } from "./SlideOver";
+import PoolLanePicker, { type PoolWithLanes } from "./PoolLanePicker";
 import { saveBlock, deleteBlock } from "@/lib/blocks";
-import { paceLabel, type Pace } from "@/lib/vasche-types";
 import type { LaneBlock, BlockInput } from "@/lib/blocks-types";
 import { formatDate } from "@/lib/format";
-
-interface PoolWithLanes {
-  id: string;
-  label: string;
-  lanes: { id: string; laneNumber: number; pace: Pace }[];
-}
 
 export default function BlockManager({
   blocks,
@@ -46,8 +40,6 @@ export default function BlockManager({
   const [form, setForm] = useState<BlockInput>(empty);
   const [pending, setPending] = useState(false);
 
-  const curPool = pools.find((p) => p.id === form.poolId);
-
   function openNew() {
     setForm({ ...empty, poolId: pools[0]?.id || "" });
     setOpen(true);
@@ -66,14 +58,6 @@ export default function BlockManager({
       newsSlug: b.newsSlug,
     });
     setOpen(true);
-  }
-  function toggleLane(id: string) {
-    setForm((f) => ({
-      ...f,
-      laneIds: f.laneIds.includes(id)
-        ? f.laneIds.filter((x) => x !== id)
-        : [...f.laneIds, id],
-    }));
   }
 
   async function save() {
@@ -247,48 +231,13 @@ export default function BlockManager({
           </div>
         </div>
 
-        <div>
-          <label className={fieldLabel}>Vasca *</label>
-          <select
-            value={form.poolId}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, poolId: e.target.value, laneIds: [] }))
-            }
-            className={fieldInput}
-          >
-            {pools.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className={fieldLabel}>Corsie bloccate *</label>
-          <div className="mt-[7px] flex flex-wrap gap-2">
-            {(curPool?.lanes || []).map((l) => {
-              const on = form.laneIds.includes(l.id);
-              return (
-                <button
-                  key={l.id}
-                  type="button"
-                  onClick={() => toggleLane(l.id)}
-                  className="flex h-[42px] items-center gap-1.5 rounded-[10px] border px-3 text-[13px] font-semibold transition"
-                  style={{
-                    background: on ? "var(--aqua)" : "var(--surface-2)",
-                    color: on ? "#06121F" : "var(--text)",
-                    borderColor: on ? "var(--aqua)" : "var(--border)",
-                  }}
-                >
-                  <i className={`ph ${on ? "ph-check-circle" : "ph-circle"}`} />
-                  Corsia {l.laneNumber}
-                  <span className="opacity-70">· {paceLabel(l.pace)}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <PoolLanePicker
+          pools={pools}
+          poolId={form.poolId}
+          laneIds={form.laneIds}
+          onChangePool={(poolId) => setForm((f) => ({ ...f, poolId, laneIds: [] }))}
+          onChangeLanes={(laneIds) => setForm((f) => ({ ...f, laneIds }))}
+        />
 
         <div>
           <label className={fieldLabel}>News collegata (opzionale)</label>

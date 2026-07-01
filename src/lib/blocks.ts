@@ -94,10 +94,19 @@ export async function getBlocks(
       title: b.title,
       note: b.note || "",
       newsSlug: b.news_slug || "",
+      eventId: b.event_id || null,
     }));
   } catch {
     return [];
   }
+}
+
+/** Solo i blocchi creati manualmente (non generati da un evento). */
+export async function getManualBlocks(
+  locationId: string = DEFAULT_LOCATION
+): Promise<LaneBlock[]> {
+  const blocks = await getBlocks(locationId);
+  return blocks.filter((b) => !b.eventId);
 }
 
 export async function saveBlock(input: BlockInput) {
@@ -136,7 +145,9 @@ export async function deleteBlock(id: string) {
 export async function getCalendarEntries(
   locationId: string = DEFAULT_LOCATION
 ): Promise<CalendarEntry[]> {
-  const [db, blocks] = await Promise.all([getDB(), getBlocks(locationId)]);
+  const [db, allBlocks] = await Promise.all([getDB(), getBlocks(locationId)]);
+  // i blocchi generati da un evento sono già rappresentati dalla voce "evento" qui sotto
+  const blocks = allBlocks.filter((b) => !b.eventId);
   const entries: CalendarEntry[] = [];
 
   blocks.forEach((b) => {
@@ -188,7 +199,8 @@ export async function getNextNotice(
   locationId: string = DEFAULT_LOCATION
 ): Promise<CalendarEntry | null> {
   const { date: today, time: now } = romeNow();
-  const [db, blocks] = await Promise.all([getDB(), getBlocks(locationId)]);
+  const [db, allBlocks] = await Promise.all([getDB(), getBlocks(locationId)]);
+  const blocks = allBlocks.filter((b) => !b.eventId);
 
   const candidates: CalendarEntry[] = [];
   blocks.forEach((b) => {
