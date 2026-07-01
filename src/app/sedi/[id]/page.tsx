@@ -278,7 +278,7 @@ export default async function SedePage({ params }: { params: { id: string } }) {
                     <i className={`ph ${c.icon}`} />
                   </span>
                   <h3 className="text-[22px] text-text">{c.title}</h3>
-                  <span className="rounded-[6px] bg-aqua-soft px-2 py-0.5 text-[11px] font-bold text-blue">
+                  <span className="rounded-[6px] bg-badge px-2 py-0.5 text-[11px] font-bold text-badge-text">
                     {c.age}
                   </span>
                 </div>

@@ -234,7 +234,7 @@ export default function NewsManager({
                   <i className="ph ph-calendar-blank" /> {r.dateLabel} · {r.author}
                 </div>
               </div>
-              <span className="justify-self-start rounded-[6px] bg-aqua-soft px-[9px] py-[3px] text-[12.5px] font-semibold text-blue">
+              <span className="justify-self-start rounded-[6px] bg-badge px-[9px] py-[3px] text-[12.5px] font-semibold text-badge-text">
                 {r.category}
               </span>
               <span className="text-[13.5px] text-muted">{r.locationLabel}</span>

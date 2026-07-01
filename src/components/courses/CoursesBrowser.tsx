@@ -106,7 +106,7 @@ export default function CoursesBrowser({
             <div className="min-w-[220px] flex-1">
               <div className="flex flex-wrap items-center gap-2.5">
                 <h2 className="text-[36px] text-text">{cur.title}</h2>
-                <span className="rounded-[7px] bg-aqua-soft px-[11px] py-1 text-xs font-bold text-blue">
+                <span className="rounded-[7px] bg-badge px-[11px] py-1 text-xs font-bold text-badge-text">
                   {cur.age}
                 </span>
               </div>

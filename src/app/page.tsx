@@ -71,7 +71,7 @@ export default async function HomePage() {
                 </span>
                 <div>
                   <h3 className="text-2xl text-text">{c.title}</h3>
-                  <span className="mt-1.5 inline-block rounded-md bg-aqua-soft px-[9px] py-[3px] text-xs font-semibold text-blue">
+                  <span className="mt-1.5 inline-block rounded-md bg-badge px-[9px] py-[3px] text-xs font-semibold text-badge-text">
                     {c.age}
                   </span>
                 </div>

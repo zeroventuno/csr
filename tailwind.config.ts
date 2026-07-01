@@ -20,6 +20,8 @@ const config: Config = {
         green: "var(--green)",
         amber: "var(--amber)",
         red: "var(--red)",
+        badge: "var(--badge-bg)",
+        "badge-text": "var(--badge-text)",
       },
       fontFamily: {
         head: ["var(--font-barlow)", "Barlow Condensed", "sans-serif"],
