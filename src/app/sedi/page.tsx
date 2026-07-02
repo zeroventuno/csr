@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getDB } from "@/lib/db";
 import { matchesLocation } from "@/lib/loc";
+import { getPublicAvailability } from "@/lib/vasche";
 
 export const dynamic = "force-dynamic";
 
@@ -13,11 +14,25 @@ export const metadata = {
 export default async function SediPage() {
   const db = await getDB();
 
-  const cards = db.locations.map((l) => ({
-    ...l,
-    courses: db.courses.filter((c) => matchesLocation(c.locationIds, l.id)).length,
-    news: db.news.filter((n) => n.published && matchesLocation(n.locationIds, l.id)).length,
-  }));
+  const availability = await Promise.all(
+    db.locations.map((l) => getPublicAvailability(l.id))
+  );
+
+  const cards = db.locations.map((l, i) => {
+    const snap = availability[i];
+    let freePct: number | null = null;
+    if (snap.ok && snap.pools.length > 0) {
+      const total = snap.pools.reduce((s, p) => s + p.total, 0);
+      const free = snap.pools.reduce((s, p) => s + p.free, 0);
+      if (total > 0) freePct = Math.round((free / total) * 100);
+    }
+    return {
+      ...l,
+      courses: db.courses.filter((c) => matchesLocation(c.locationIds, l.id)).length,
+      news: db.news.filter((n) => n.published && matchesLocation(n.locationIds, l.id)).length,
+      freePct,
+    };
+  });
 
   return (
     <>
@@ -89,10 +104,12 @@ export default async function SediPage() {
                     <i className="ph ph-newspaper text-aqua" />
                     {l.news} news
                   </span>
-                  <span className="flex items-center gap-1.5">
-                    <i className="ph ph-drop text-aqua" />
-                    {l.pool}%
-                  </span>
+                  {l.freePct !== null && (
+                    <span className="flex items-center gap-1.5">
+                      <i className="ph ph-drop text-aqua" />
+                      {l.freePct}% libero
+                    </span>
+                  )}
                 </div>
                 <span className="mt-2 flex items-center gap-2 text-sm font-bold text-aqua">
                   Vai alla sede
