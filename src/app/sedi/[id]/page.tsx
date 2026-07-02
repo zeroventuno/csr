@@ -167,29 +167,6 @@ export default async function SedePage({ params }: { params: { id: string } }) {
                 </div>
               )}
             </div>
-
-            {/* pool availability */}
-            <div className="mt-6 rounded-[14px] border border-border bg-surface-2 p-5">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted">
-                <i className="ph ph-drop text-aqua" />
-                Disponibilità Vasche
-              </div>
-              <div className="mt-2.5 flex items-end gap-3">
-                <div className="head text-[44px] font-extrabold leading-none text-text">
-                  {loc.pool}
-                  <span className="text-xl text-muted">%</span>
-                </div>
-                <div className="pb-1.5 text-[13px] text-muted">
-                  posti liberi · tempo reale
-                </div>
-              </div>
-              <div className="mt-3 h-2.5 overflow-hidden rounded-md bg-bg">
-                <div
-                  className="h-full rounded-md bg-gradient-to-r from-blue to-aqua"
-                  style={{ width: `${loc.pool}%` }}
-                />
-              </div>
-            </div>
           </div>
 
           {/* map */}
