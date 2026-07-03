@@ -22,6 +22,8 @@
   --red: #d6485c;
   --badge-bg: #7dddef;
   --badge-text: #0d3b66;
+  --dot: rgba(13, 59, 102, 0.06);
+  --glow: rgba(0, 180, 216, 0.09);
   --font-inter: "Inter";
   --font-barlow: "Barlow Condensed";
 }
@@ -46,6 +48,8 @@
   --red: #e86678;
   --badge-bg: rgba(0, 180, 216, 0.16);
   --badge-text: #7dddef;
+  --dot: rgba(125, 221, 239, 0.05);
+  --glow: rgba(45, 212, 240, 0.1);
 }
 
 * {
@@ -59,7 +63,10 @@ body {
 }
 
 body {
-  background: var(--bg);
+  background-color: var(--bg);
+  /* texture: griglia di puntini sottile, visibile solo sullo sfondo pagina */
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.5px);
+  background-size: 26px 26px;
   color: var(--text);
   font-family: var(--font-inter), Inter, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -261,4 +268,224 @@ a {
 .reveal.is-visible {
   opacity: 1;
   transform: none;
+}
+
+/* ============================================================
+   Premium touches — texture, glow, micro-interazioni
+   ============================================================ */
+
+html {
+  scroll-behavior: smooth;
+}
+[id] {
+  scroll-margin-top: 96px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--aqua);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--aqua) 30%, transparent);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--aqua) 50%, transparent);
+}
+
+/* --- glow che segue il cursore (solo desktop) --- */
+.cursor-glow {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 440px;
+  height: 440px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 5;
+  background: radial-gradient(circle, var(--glow) 0%, transparent 62%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  will-change: transform;
+}
+@media (pointer: coarse) {
+  .cursor-glow {
+    display: none;
+  }
+}
+
+/* --- lampo di luce su card e bottoni --- */
+.card-shine,
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+.card-shine::after,
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 55%;
+  left: -80%;
+  background: linear-gradient(
+    105deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.16) 50%,
+    transparent 80%
+  );
+  transform: skewX(-18deg);
+  pointer-events: none;
+  opacity: 0;
+}
+.btn-shine::after {
+  background: linear-gradient(
+    105deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.38) 50%,
+    transparent 80%
+  );
+}
+.card-shine:hover::after,
+.btn-shine:hover::after {
+  animation: shineSweep 0.9s ease;
+}
+@keyframes shineSweep {
+  0% {
+    left: -80%;
+    opacity: 1;
+  }
+  100% {
+    left: 130%;
+    opacity: 0;
+  }
+}
+
+/* --- sottolineatura animata della nav --- */
+.nav-underline {
+  position: relative;
+}
+.nav-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--aqua);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.28s cubic-bezier(0.16, 0.84, 0.44, 1);
+}
+.nav-underline:hover::after {
+  transform: scaleX(1);
+}
+
+/* --- marquee partner --- */
+.marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 10%,
+    #000 90%,
+    transparent
+  );
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marqueeMove 32s linear infinite;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+@keyframes marqueeMove {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* --- hero: zoom lento, shimmer, bolle --- */
+.hero-zoom {
+  animation: heroZoom 24s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes heroZoom {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.09);
+  }
+}
+
+.text-shimmer {
+  background: linear-gradient(100deg, #7dddef 0%, #ffffff 45%, #7dddef 90%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  text-shadow: none;
+  animation: shimmerMove 6s ease-in-out infinite;
+}
+@keyframes shimmerMove {
+  0%,
+  100% {
+    background-position: 0% 0;
+  }
+  50% {
+    background-position: 100% 0;
+  }
+}
+
+.bubble {
+  position: absolute;
+  bottom: -40px;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.5),
+    rgba(125, 221, 239, 0.08) 70%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  opacity: 0;
+  animation: bubbleRise linear infinite;
+}
+@keyframes bubbleRise {
+  0% {
+    transform: translateY(0) translateX(0) scale(0.9);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.75;
+  }
+  60% {
+    opacity: 0.5;
+    transform: translateY(-55vh) translateX(14px) scale(1);
+  }
+  100% {
+    transform: translateY(-108vh) translateX(-10px) scale(1.05);
+    opacity: 0;
+  }
+}
+
+/* --- rispetto della preferenza di movimento ridotto --- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .hero-zoom,
+  .bubble,
+  .marquee-track,
+  .text-shimmer {
+    animation: none !important;
+  }
+  .cursor-glow {
+    display: none;
+  }
 }

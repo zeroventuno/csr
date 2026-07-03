@@ -125,7 +125,7 @@ export default function NewsBrowser({
               <Link
                 key={n.slug}
                 href={`/news/${n.slug}`}
-                className="group flex flex-col overflow-hidden rounded-[18px] border border-border bg-surface transition duration-300 hover:-translate-y-1.5 hover:border-aqua hover:shadow-csr"
+                className="card-shine group flex flex-col overflow-hidden rounded-[18px] border border-border bg-surface transition duration-300 hover:-translate-y-1.5 hover:border-aqua hover:shadow-csr"
               >
                 <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-blue to-aqua">
                   {n.coverImage ? (
@@ -170,7 +170,7 @@ export default function NewsBrowser({
                   </p>
                   <span className="flex items-center gap-[7px] text-sm font-bold text-aqua">
                     Leggi tutto
-                    <i className="ph ph-arrow-right" />
+                    <i className="ph ph-arrow-right transition-transform duration-300 group-hover:translate-x-1" />
                   </span>
                 </div>
               </Link>

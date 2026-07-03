@@ -69,7 +69,7 @@ export default async function SediPage() {
             <Link
               key={l.id}
               href={`/sedi/${l.id}`}
-              className="group flex flex-col overflow-hidden rounded-[20px] border border-border bg-surface transition duration-300 hover:-translate-y-1.5 hover:border-aqua hover:shadow-csr"
+              className="card-shine group flex flex-col overflow-hidden rounded-[20px] border border-border bg-surface transition duration-300 hover:-translate-y-1.5 hover:border-aqua hover:shadow-csr"
             >
               <div className="relative h-[150px] bg-gradient-to-br from-blue to-aqua">
                 <div
@@ -113,7 +113,7 @@ export default async function SediPage() {
                 </div>
                 <span className="mt-2 flex items-center gap-2 text-sm font-bold text-aqua">
                   Vai alla sede
-                  <i className="ph ph-arrow-right" />
+                  <i className="ph ph-arrow-right transition-transform duration-300 group-hover:translate-x-1" />
                 </span>
               </div>
             </Link>

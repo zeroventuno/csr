@@ -64,9 +64,9 @@ export default async function HomePage() {
             <Reveal key={c.id}>
               <Link
                 href={`/corsi?cat=${c.id}`}
-                className="group flex h-full flex-col gap-3.5 rounded-[18px] border border-border bg-surface p-6 transition duration-300 hover:-translate-y-1.5 hover:border-aqua hover:shadow-csr"
+                className="card-shine group flex h-full flex-col gap-3.5 rounded-[18px] border border-border bg-surface p-6 transition duration-300 hover:-translate-y-1.5 hover:border-aqua hover:shadow-csr"
               >
-                <span className="grid h-[54px] w-[54px] place-items-center rounded-[14px] bg-bg text-[28px] text-aqua">
+                <span className="grid h-[54px] w-[54px] place-items-center rounded-[14px] bg-bg text-[28px] text-aqua transition-transform duration-300 group-hover:-translate-y-1 group-hover:-rotate-6 group-hover:scale-110">
                   <i className={`ph ${c.icon}`} />
                 </span>
                 <div>
@@ -80,7 +80,7 @@ export default async function HomePage() {
                 </p>
                 <span className="flex items-center gap-[7px] text-sm font-bold text-aqua">
                   Scopri
-                  <i className="ph ph-arrow-right" />
+                  <i className="ph ph-arrow-right transition-transform duration-300 group-hover:translate-x-1" />
                 </span>
               </Link>
             </Reveal>
@@ -116,7 +116,7 @@ export default async function HomePage() {
             <Reveal>
               <Link
                 href={`/news/${featured.slug}`}
-                className="group flex h-full flex-col overflow-hidden rounded-[20px] border border-border bg-surface transition duration-300 hover:-translate-y-1.5 hover:border-aqua hover:shadow-csr"
+                className="card-shine group flex h-full flex-col overflow-hidden rounded-[20px] border border-border bg-surface transition duration-300 hover:-translate-y-1.5 hover:border-aqua hover:shadow-csr"
               >
                 <div className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-blue to-aqua">
                   {featured.coverImage ? (
@@ -163,7 +163,7 @@ export default async function HomePage() {
                   </p>
                   <span className="flex items-center gap-[7px] font-bold text-aqua">
                     Leggi l&apos;articolo
-                    <i className="ph ph-arrow-right" />
+                    <i className="ph ph-arrow-right transition-transform duration-300 group-hover:translate-x-1" />
                   </span>
                 </div>
               </Link>
@@ -175,7 +175,7 @@ export default async function HomePage() {
               <Reveal key={n.id} className="flex-1">
                 <Link
                   href={`/news/${n.slug}`}
-                  className="group flex h-full gap-4 rounded-[16px] border border-border bg-surface p-4 transition duration-300 hover:-translate-y-1.5 hover:border-aqua hover:shadow-csr"
+                  className="card-shine group flex h-full gap-4 rounded-[16px] border border-border bg-surface p-4 transition duration-300 hover:-translate-y-1.5 hover:border-aqua hover:shadow-csr"
                 >
                   <span className="grid w-[92px] flex-none place-items-center self-stretch rounded-[12px] bg-gradient-to-br from-blue to-aqua text-[32px] text-white/70">
                     <i className={`ph ${n.icon}`} />
@@ -201,16 +201,18 @@ export default async function HomePage() {
         <p className="text-center text-[13px] font-semibold uppercase tracking-[0.1em] text-muted">
           Partner &amp; Federazioni
         </p>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-10 opacity-65">
-          {PARTNERS.map((p) => (
-            <span
-              key={p.name}
-              className="head flex items-center gap-[9px] text-2xl font-bold text-muted"
-            >
-              <i className={`ph ${p.icon} text-[26px]`} />
-              {p.name}
-            </span>
-          ))}
+        <div className="marquee mt-6 opacity-70">
+          <div className="marquee-track">
+            {[...PARTNERS, ...PARTNERS].map((p, i) => (
+              <span
+                key={`${p.name}-${i}`}
+                className="head mr-16 flex items-center gap-[9px] text-2xl font-bold text-muted"
+              >
+                <i className={`ph ${p.icon} text-[26px]`} />
+                {p.name}
+              </span>
+            ))}
+          </div>
         </div>
       </Reveal>
 

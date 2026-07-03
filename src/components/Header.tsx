@@ -37,7 +37,7 @@ export default function Header({ active = "home" }: { active?: string }) {
             <Link
               key={n.key}
               href={n.href}
-              className={`text-[15px] transition hover:text-aqua ${
+              className={`nav-underline text-[15px] transition hover:text-aqua ${
                 active === n.key
                   ? "font-semibold text-aqua"
                   : "font-medium text-text"
@@ -59,7 +59,7 @@ export default function Header({ active = "home" }: { active?: string }) {
           </Link>
           <Link
             href="/corsi"
-            className="flex h-[42px] items-center gap-[7px] rounded-[11px] bg-aqua px-[18px] text-sm font-bold text-[#06121F] transition hover:-translate-y-0.5"
+            className="btn-shine flex h-[42px] items-center gap-[7px] rounded-[11px] bg-aqua px-[18px] text-sm font-bold text-[#06121F] transition hover:-translate-y-0.5"
           >
             Iscriviti
             <i className="ph ph-arrow-right" />
