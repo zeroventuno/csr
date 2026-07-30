@@ -113,16 +113,43 @@ export default async function ArticlePage({
             <div className="rounded-[16px] border border-border bg-surface p-5">
               <div className="flex items-center gap-3">
                 <span className="grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br from-blue to-aqua text-[22px] text-white">
-                  <i className="ph ph-user" />
+                  <i className={`ph ${article.sourceUrl ? "ph-newspaper-clipping" : "ph-user"}`} />
                 </span>
                 <div>
                   <div className="text-[15px] font-bold text-text">
-                    Redazione CSR
+                    {article.author === "Rassegna Stampa"
+                      ? "Rassegna Stampa"
+                      : "Redazione CSR"}
                   </div>
-                  <div className="text-[12.5px] text-muted">Ufficio Stampa</div>
+                  <div className="text-[12.5px] text-muted">
+                    {article.sourceUrl ? "Selezione a cura della redazione" : "Ufficio Stampa"}
+                  </div>
                 </div>
               </div>
             </div>
+
+            {article.sourceUrl && (
+              <div className="rounded-[16px] border border-border bg-surface-2 p-5">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted">
+                  <i className="ph ph-link text-aqua" />
+                  Fonte originale
+                </div>
+                <p className="mt-2 text-[13px] leading-[1.5] text-muted">
+                  Questo articolo è una sintesi editoriale basata su una notizia
+                  pubblicata da {article.sourceName || "una fonte esterna"}.
+                </p>
+                <a
+                  href={article.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="mt-3 flex items-center gap-1.5 text-[13.5px] font-bold text-aqua"
+                >
+                  Leggi l&apos;articolo originale
+                  <i className="ph ph-arrow-square-out" />
+                </a>
+              </div>
+            )}
+
             <div className="rounded-[16px] bg-gradient-to-br from-blue-deep to-blue p-[22px] text-white">
               <h3 className="text-2xl">Vuoi gareggiare con noi?</h3>
               <p className="mt-2 text-sm leading-[1.5] text-white/85">

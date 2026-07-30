@@ -40,6 +40,8 @@ export function mapNews(r: any): News {
     author: r.author,
     published: !!r.published,
     date: typeof r.date === "string" ? r.date.slice(0, 10) : r.date,
+    sourceName: r.source_name || undefined,
+    sourceUrl: r.source_url || undefined,
     createdAt: r.created_at,
   };
 }

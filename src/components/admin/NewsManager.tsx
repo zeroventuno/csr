@@ -25,9 +25,11 @@ export interface NewsRow {
   excerpt: string;
   content: string;
   coverImage?: string;
+  sourceName?: string;
+  sourceUrl?: string;
 }
 
-const CATS: Category[] = ["Corsi", "Eventi", "Avvisi", "Comunicati"];
+const CATS: Category[] = ["Corsi", "Eventi", "Avvisi", "Comunicati", "Sport"];
 const FILTERS = ["Tutte", "Pubblicati", "Bozze"] as const;
 
 const RT_TOOLS = [
@@ -233,6 +235,18 @@ export default function NewsManager({
                 <div className="mt-0.5 text-xs text-muted">
                   <i className="ph ph-calendar-blank" /> {r.dateLabel} · {r.author}
                 </div>
+                {r.sourceUrl && (
+                  <a
+                    href={r.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    onClick={(e) => e.stopPropagation()}
+                    className="mt-1 flex items-center gap-1 text-[11.5px] font-semibold text-aqua"
+                  >
+                    <i className="ph ph-link" />
+                    Fonte: {r.sourceName || "link"}
+                  </a>
+                )}
               </div>
               <span className="justify-self-start rounded-[6px] bg-badge px-[9px] py-[3px] text-[12.5px] font-semibold text-badge-text">
                 {r.category}

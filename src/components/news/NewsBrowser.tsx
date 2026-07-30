@@ -17,7 +17,7 @@ export interface NewsCard {
   coverImage?: string;
 }
 
-const CATS = ["Tutte", "Corsi", "Eventi", "Avvisi", "Comunicati"] as const;
+const CATS = ["Tutte", "Corsi", "Eventi", "Avvisi", "Comunicati", "Sport"] as const;
 const PER_PAGE = 9;
 
 export default function NewsBrowser({

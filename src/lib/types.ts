@@ -1,4 +1,4 @@
-export type Category = "Corsi" | "Eventi" | "Avvisi" | "Comunicati";
+export type Category = "Corsi" | "Eventi" | "Avvisi" | "Comunicati" | "Sport";
 
 export type Role = "admin" | "editor";
 
@@ -28,6 +28,8 @@ export interface News {
   author: string;
   published: boolean;
   date: string; // ISO date (data di pubblicazione)
+  sourceName?: string; // fonte originale (rassegna stampa esterna)
+  sourceUrl?: string;
   createdAt: string;
 }
 

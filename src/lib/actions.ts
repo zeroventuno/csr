@@ -7,8 +7,8 @@ import { supabaseAdmin, MEDIA_BUCKET } from "./supabase";
 import { slugify, uid } from "./db";
 import { getSession } from "./session";
 import { SESSION_COOKIE, createToken, COOKIE_MAX_AGE } from "./auth";
+import { ICON_BY_CATEGORY } from "./newsMeta";
 import type {
-  Category,
   Media,
   NewsInput,
   CourseInput,
@@ -74,13 +74,6 @@ export async function logoutAction() {
 }
 
 /* ===================== NEWS ===================== */
-
-const ICON_BY_CATEGORY: Record<Category, string> = {
-  Corsi: "ph-graduation-cap",
-  Eventi: "ph-waves",
-  Avvisi: "ph-megaphone",
-  Comunicati: "ph-file-text",
-};
 
 export async function saveNews(input: NewsInput) {
   const session = await getSession();

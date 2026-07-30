@@ -25,6 +25,8 @@ export default async function AdminNewsPage() {
       excerpt: n.excerpt,
       content: n.content,
       coverImage: n.coverImage || undefined,
+      sourceName: n.sourceName,
+      sourceUrl: n.sourceUrl,
     }));
 
   const locations = db.locations.map((l) => ({ id: l.id, name: l.name }));
