@@ -128,8 +128,12 @@ export async function sendContact(
     return { ok: false, error: "È necessario accettare l'informativa privacy." };
   }
 
-  const url = process.env.N8N_CONTACT_WEBHOOK_URL;
-  if (!url) {
+  // Due vie d'invio: SMTP diretto (preferito) oppure webhook n8n (storico).
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+  const webhookUrl = process.env.N8N_CONTACT_WEBHOOK_URL;
+
+  if (!smtpUser && !webhookUrl) {
     return {
       ok: false,
       error:
@@ -156,24 +160,54 @@ export async function sendContact(
   const message = input.message.trim();
   const sedeResolved = sede || { id: input.sedeId, name: input.sedeId, email: "" };
 
+  const messageHtml = buildContactEmailHtml({
+    sedeName: sedeResolved.name,
+    name: contact.name,
+    email: contact.email,
+    phone: contact.phone,
+    message,
+    submittedAt,
+  });
+
+  // --- Via 1: SMTP diretto (nessuna dipendenza esterna) ---
+  if (smtpUser && smtpPass) {
+    try {
+      const nodemailer = (await import("nodemailer")).default;
+      const port = Number(process.env.SMTP_PORT || 465);
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || "smtp.hostinger.com",
+        port,
+        secure: port === 465,
+        auth: { user: smtpUser, pass: smtpPass },
+      });
+
+      await transporter.sendMail({
+        // Il mittente deve restare la casella autenticata (SPF/DMARC).
+        from: `"Centro Sportivo Roero — sito" <${smtpUser}>`,
+        to: process.env.CONTACT_TO || sedeResolved.email || smtpUser,
+        replyTo: `"${contact.name}" <${contact.email}>`,
+        subject: `Nuovo messaggio dal sito — ${sedeResolved.name} — ${contact.name}`,
+        text: `Sede: ${sedeResolved.name}\nNome: ${contact.name}\nEmail: ${contact.email}\nTelefono: ${contact.phone || "—"}\n\n${message}`,
+        html: messageHtml,
+      });
+      return { ok: true };
+    } catch {
+      return { ok: false, error: "Invio non riuscito. Riprova più tardi." };
+    }
+  }
+
+  // --- Via 2: webhook n8n (retrocompatibile) ---
   const payload = {
     source: "sito-web-contatti",
     submittedAt,
     sede: sedeResolved,
     contact,
     message,
-    messageHtml: buildContactEmailHtml({
-      sedeName: sedeResolved.name,
-      name: contact.name,
-      email: contact.email,
-      phone: contact.phone,
-      message,
-      submittedAt,
-    }),
+    messageHtml,
   };
 
   try {
-    const res = await fetch(url, {
+    const res = await fetch(webhookUrl!, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(payload),
