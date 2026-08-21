@@ -20,10 +20,17 @@ export default async function SediPage() {
 
   const cards = db.locations.map((l, i) => {
     const snap = availability[i];
+    // le vasche chiuse non entrano nel calcolo: mai "100% libero" a piscina chiusa
+    const openPools = snap.ok ? snap.pools.filter((p) => !p.closed) : [];
+    const closedPools = snap.ok ? snap.pools.filter((p) => p.closed) : [];
+    const closed =
+      snap.locationClosed ||
+      (snap.ok && snap.pools.length > 0 && openPools.length === 0);
+
     let freePct: number | null = null;
-    if (snap.ok && snap.pools.length > 0) {
-      const total = snap.pools.reduce((s, p) => s + p.total, 0);
-      const free = snap.pools.reduce((s, p) => s + p.free, 0);
+    if (snap.ok && !closed && openPools.length > 0) {
+      const total = openPools.reduce((s, p) => s + p.total, 0);
+      const free = openPools.reduce((s, p) => s + p.free, 0);
       if (total > 0) freePct = Math.round((free / total) * 100);
     }
     return {
@@ -31,6 +38,10 @@ export default async function SediPage() {
       courses: db.courses.filter((c) => matchesLocation(c.locationIds, l.id)).length,
       news: db.news.filter((n) => n.published && matchesLocation(n.locationIds, l.id)).length,
       freePct,
+      closed,
+      closureTitle:
+        snap.closure?.title || closedPools[0]?.closure?.title || "",
+      partialClosure: !closed && closedPools.length > 0,
     };
   });
 
@@ -104,13 +115,35 @@ export default async function SediPage() {
                     <i className="ph ph-newspaper text-aqua" />
                     {l.news} news
                   </span>
-                  {l.freePct !== null && (
-                    <span className="flex items-center gap-1.5">
-                      <i className="ph ph-drop text-aqua" />
-                      {l.freePct}% libero
+                  {l.closed ? (
+                    <span className="flex items-center gap-1.5 font-bold text-red">
+                      <i className="ph-fill ph-warning-octagon" />
+                      Chiusa
                     </span>
+                  ) : (
+                    l.freePct !== null && (
+                      <span className="flex items-center gap-1.5">
+                        <i className="ph ph-drop text-aqua" />
+                        {l.freePct}% libero
+                      </span>
+                    )
                   )}
                 </div>
+                {(l.closed || l.partialClosure) && (
+                  <div
+                    className="flex items-start gap-2 rounded-[11px] border px-3 py-2 text-[12.5px] font-semibold leading-[1.4] text-text"
+                    style={{
+                      borderColor: "var(--red)",
+                      background: "rgba(214,72,92,.08)",
+                    }}
+                  >
+                    <i className="ph-fill ph-warning-octagon mt-0.5 text-red" />
+                    <span>
+                      {l.closed ? "Sede chiusa" : "Vasca chiusa"}
+                      {l.closureTitle ? ` — ${l.closureTitle}` : ""}
+                    </span>
+                  </div>
+                )}
                 <span className="mt-2 flex items-center gap-2 text-sm font-bold text-aqua">
                   Vai alla sede
                   <i className="ph ph-arrow-right transition-transform duration-300 group-hover:translate-x-1" />

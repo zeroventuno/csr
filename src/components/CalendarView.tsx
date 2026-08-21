@@ -3,12 +3,20 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { CAL_META, type CalendarEntry } from "@/lib/blocks-types";
+import { formatDayMonth } from "@/lib/format";
 
 const WEEK = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
 const MONTHS = [
   "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
   "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre",
 ];
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+/** Ultimo giorno coperto da una voce (le chiusure durano più giorni). */
+function entryEnd(e: CalendarEntry): string {
+  return e.dateTo && e.dateTo > e.date ? e.dateTo : e.date;
+}
 
 export default function CalendarView({ entries }: { entries: CalendarEntry[] }) {
   const now = new Date();
@@ -17,10 +25,25 @@ export default function CalendarView({ entries }: { entries: CalendarEntry[] }) 
 
   const byDay = useMemo(() => {
     const m = new Map<string, CalendarEntry[]>();
-    entries.forEach((e) => {
-      const arr = m.get(e.date) || [];
+    const push = (date: string, e: CalendarEntry) => {
+      const arr = m.get(date) || [];
       arr.push(e);
-      m.set(e.date, arr);
+      m.set(date, arr);
+    };
+    entries.forEach((e) => {
+      const end = entryEnd(e);
+      if (end === e.date) {
+        push(e.date, e);
+        return;
+      }
+      // voce su più giorni: segnala ogni giorno dell'intervallo
+      const [y, mo, d] = e.date.split("-").map(Number);
+      const cur = new Date(Date.UTC(y, mo - 1, d));
+      let guard = 0;
+      while (cur.toISOString().slice(0, 10) <= end && guard++ < 400) {
+        push(cur.toISOString().slice(0, 10), e);
+        cur.setUTCDate(cur.getUTCDate() + 1);
+      }
     });
     return m;
   }, [entries]);
@@ -31,22 +54,22 @@ export default function CalendarView({ entries }: { entries: CalendarEntry[] }) 
     const arr: (string | null)[] = [];
     for (let i = 0; i < firstDow; i++) arr.push(null);
     for (let d = 1; d <= days; d++)
-      arr.push(`${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`);
+      arr.push(`${year}-${pad(month + 1)}-${pad(d)}`);
     return arr;
   }, [year, month]);
 
-  const monthEntries = useMemo(
-    () =>
-      entries
-        .filter((e) => {
-          const [y, mo] = e.date.split("-").map(Number);
-          return y === year && mo === month + 1;
-        })
-        .sort((a, b) =>
-          `${a.date} ${a.time || ""}` < `${b.date} ${b.time || ""}` ? -1 : 1
-        ),
-    [entries, year, month]
-  );
+  const monthEntries = useMemo(() => {
+    const first = `${year}-${pad(month + 1)}-01`;
+    const last = `${year}-${pad(month + 1)}-${pad(
+      new Date(year, month + 1, 0).getDate()
+    )}`;
+    // include anche le voci su più giorni che si sovrappongono al mese
+    return entries
+      .filter((e) => e.date <= last && entryEnd(e) >= first)
+      .sort((a, b) =>
+        `${a.date} ${a.time || ""}` < `${b.date} ${b.time || ""}` ? -1 : 1
+      );
+  }, [entries, year, month]);
 
   const prev = () => {
     if (month === 0) {
@@ -130,7 +153,7 @@ export default function CalendarView({ entries }: { entries: CalendarEntry[] }) 
         </div>
         {/* legend */}
         <div className="mt-4 flex flex-wrap gap-4">
-          {(["blocco", "evento", "avviso"] as const).map((t) => (
+          {(["blocco", "chiusura", "evento", "avviso"] as const).map((t) => (
             <span
               key={t}
               className="flex items-center gap-1.5 text-[12px] text-muted"
@@ -167,7 +190,10 @@ export default function CalendarView({ entries }: { entries: CalendarEntry[] }) 
                       {e.title}
                     </div>
                     <div className="text-[12.5px] text-muted">
-                      {Number(e.date.split("-")[2])} {MONTHS[month].slice(0, 3)}
+                      {formatDayMonth(e.date)}
+                      {entryEnd(e) !== e.date
+                        ? ` – ${formatDayMonth(entryEnd(e))}`
+                        : ""}
                       {e.time ? ` · ${e.time}` : ""}
                       {e.endTime ? `–${e.endTime}` : ""}
                       {e.subtitle ? ` · ${e.subtitle}` : ""}

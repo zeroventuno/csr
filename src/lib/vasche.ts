@@ -2,12 +2,14 @@
 
 import { supabaseAdmin } from "./supabase";
 import { getSession } from "./session";
-import { activeBlockedLaneIds } from "./blocks";
+import { activeBlockedLaneIds, activeClosures } from "./blocks";
+import { formatDate } from "./format";
 import type {
   Pace,
   AvailabilitySnapshot,
   PoolAvail,
   PaceAvail,
+  ClosureInfo,
   ReceptionSnapshot,
   ReceptionPool,
   LaneDetail,
@@ -77,6 +79,58 @@ async function loadPoolsAndLanes(locationId: string) {
   return { sb, poolRows, laneRows };
 }
 
+/* ===================== CHIUSURE ===================== *
+ * Una chiusura (supabase/chiusure.sql) copre giorni interi. Se la tabella non
+ * esiste ancora activeClosures() restituisce [] e tutto si comporta come prima.
+ */
+
+interface ClosureCtx {
+  /** chiusura dell'intera sede (pool_id null), se presente */
+  location: ClosureInfo | null;
+  /** chiusure delle singole vasche */
+  byPool: Map<string, ClosureInfo>;
+}
+
+const NO_CLOSURES: ClosureCtx = { location: null, byPool: new Map() };
+
+async function closureContext(locationId: string): Promise<ClosureCtx> {
+  const list = await activeClosures(locationId);
+  if (list.length === 0) return NO_CLOSURES;
+  let location: ClosureInfo | null = null;
+  const byPool = new Map<string, ClosureInfo>();
+  for (const c of list) {
+    const info: ClosureInfo = {
+      title: c.title,
+      note: c.note,
+      dateFrom: c.dateFrom,
+      dateTo: c.dateTo,
+      wholeLocation: !c.poolId,
+    };
+    if (!c.poolId) {
+      if (!location) location = info;
+    } else if (!byPool.has(c.poolId)) {
+      byPool.set(c.poolId, info);
+    }
+  }
+  return { location, byPool };
+}
+
+/** Chiusura che riguarda questa vasca (quella di sede ha la precedenza). */
+function closureFor(ctx: ClosureCtx, poolId: string): ClosureInfo | null {
+  return ctx.location || ctx.byPool.get(poolId) || null;
+}
+
+/** Messaggio in italiano da mostrare a chi prova a entrare in acqua. */
+function closureMessage(c: ClosureInfo): string {
+  const what = c.wholeLocation ? "La sede è chiusa" : "Questa vasca è chiusa";
+  const when =
+    c.dateFrom === c.dateTo
+      ? `il ${formatDate(c.dateFrom)}`
+      : `dal ${formatDate(c.dateFrom)} al ${formatDate(c.dateTo)}`;
+  const why = c.title ? ` — ${c.title}` : "";
+  return `${what} ${when}${why}. Il check-in non è disponibile.`;
+}
+
 /** Vasche con le rispettive corsie (per l'admin: creazione blocchi). */
 export async function getPoolsWithLanes(locationId: string = DEFAULT_LOCATION) {
   try {
@@ -100,13 +154,19 @@ export async function getPublicAvailability(
 ): Promise<AvailabilitySnapshot> {
   try {
     const { sb, poolRows, laneRows } = await loadPoolsAndLanes(locationId);
-    const counts = await activeByLane(
-      sb,
-      laneRows.map((l) => l.id)
-    );
-    const blocked = new Set(await activeBlockedLaneIds(locationId));
+    const [counts, blockedIds, closures] = await Promise.all([
+      activeByLane(
+        sb,
+        laneRows.map((l) => l.id)
+      ),
+      activeBlockedLaneIds(locationId),
+      closureContext(locationId),
+    ]);
+    const blocked = new Set(blockedIds);
 
     const pools: PoolAvail[] = poolRows.map((p) => {
+      const closure = closureFor(closures, p.id);
+      const closed = !!closure;
       // le corsie bloccate ora non contano nella disponibilità
       const lanes = laneRows.filter(
         (l) => l.pool_id === p.id && !blocked.has(l.id)
@@ -115,7 +175,8 @@ export async function getPublicAvailability(
         const ls = lanes.filter((l) => l.pace === pc.id);
         const total = ls.reduce((s, l) => s + l.max_capacity, 0);
         const occ = ls.reduce((s, l) => s + (counts.get(l.id) || 0), 0);
-        return { pace: pc.id, free: Math.max(0, total - occ), total };
+        // vasca chiusa: nessun posto disponibile, mai "libero"
+        return { pace: pc.id, free: closed ? 0 : Math.max(0, total - occ), total };
       }).filter((x) => x.total > 0);
       const total = lanes.reduce((s, l) => s + l.max_capacity, 0);
       const occ = lanes.reduce((s, l) => s + (counts.get(l.id) || 0), 0);
@@ -125,14 +186,28 @@ export async function getPublicAvailability(
         lengthMeters: p.length_meters,
         side: p.side,
         paces,
-        free: Math.max(0, total - occ),
+        free: closed ? 0 : Math.max(0, total - occ),
         total,
+        closed,
+        closure,
       };
     });
 
-    return { pools, updatedAt: new Date().toISOString(), ok: true };
+    return {
+      pools,
+      updatedAt: new Date().toISOString(),
+      ok: true,
+      locationClosed: !!closures.location,
+      closure: closures.location,
+    };
   } catch {
-    return { pools: [], updatedAt: new Date().toISOString(), ok: false };
+    return {
+      pools: [],
+      updatedAt: new Date().toISOString(),
+      ok: false,
+      locationClosed: false,
+      closure: null,
+    };
   }
 }
 
@@ -150,6 +225,10 @@ export async function checkin(
       .eq("id", poolId)
       .maybeSingle();
     if (!pool) return { ok: false, error: "Vasca non trovata." };
+
+    // vasca (o sede) chiusa: nessuna corsia può essere assegnata
+    const closure = closureFor(await closureContext(pool.location_id), poolId);
+    if (closure) return { ok: false, error: closureMessage(closure) };
 
     const { data: lanes, error: lErr } = await sb
       .from("lanes")
@@ -234,15 +313,27 @@ export async function getReceptionData(
   locationId: string = DEFAULT_LOCATION
 ): Promise<ReceptionSnapshot> {
   const session = await getSession();
-  if (!session) return { pools: [], totalInWater: 0, updatedAt: new Date().toISOString(), ok: false };
+  if (!session)
+    return {
+      pools: [],
+      totalInWater: 0,
+      updatedAt: new Date().toISOString(),
+      ok: false,
+      locationClosed: false,
+      closure: null,
+    };
 
   try {
     const { sb, poolRows, laneRows } = await loadPoolsAndLanes(locationId);
-    const counts = await activeByLane(
-      sb,
-      laneRows.map((l) => l.id)
-    );
-    const blocked = new Set(await activeBlockedLaneIds(locationId));
+    const [counts, blockedIds, closures] = await Promise.all([
+      activeByLane(
+        sb,
+        laneRows.map((l) => l.id)
+      ),
+      activeBlockedLaneIds(locationId),
+      closureContext(locationId),
+    ]);
+    const blocked = new Set(blockedIds);
     let totalInWater = 0;
 
     const pools: ReceptionPool[] = poolRows.map((p) => {
@@ -262,12 +353,34 @@ export async function getReceptionData(
             blocked: blocked.has(l.id),
           };
         });
-      return { id: p.id, name: p.name, side: p.side, lanes };
+      const closure = closureFor(closures, p.id);
+      return {
+        id: p.id,
+        name: p.name,
+        side: p.side,
+        lanes,
+        closed: !!closure,
+        closure,
+      };
     });
 
-    return { pools, totalInWater, updatedAt: new Date().toISOString(), ok: true };
+    return {
+      pools,
+      totalInWater,
+      updatedAt: new Date().toISOString(),
+      ok: true,
+      locationClosed: !!closures.location,
+      closure: closures.location,
+    };
   } catch {
-    return { pools: [], totalInWater: 0, updatedAt: new Date().toISOString(), ok: false };
+    return {
+      pools: [],
+      totalInWater: 0,
+      updatedAt: new Date().toISOString(),
+      ok: false,
+      locationClosed: false,
+      closure: null,
+    };
   }
 }
 

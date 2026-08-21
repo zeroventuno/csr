@@ -8,7 +8,13 @@ import { matchesLocation } from "@/lib/loc";
 import { formatDate, formatDayMonth } from "@/lib/format";
 import AvailabilityWidget from "@/components/vasche/AvailabilityWidget";
 import CalendarView from "@/components/CalendarView";
-import { getCalendarEntries, getNextNotice } from "@/lib/blocks";
+import ClosureBanner from "@/components/ClosureBanner";
+import {
+  getCalendarEntries,
+  getNextNotice,
+  activeClosures,
+  upcomingClosures,
+} from "@/lib/blocks";
 import { CAL_META } from "@/lib/blocks-types";
 
 export const dynamic = "force-dynamic";
@@ -31,10 +37,16 @@ export default async function SedePage({ params }: { params: { id: string } }) {
     .sort((a, b) => (a.date < b.date ? 1 : -1))
     .slice(0, 6);
 
-  const [calEntries, nextNotice] = await Promise.all([
+  const [calEntries, nextNotice, closuresNow, closuresSoon] = await Promise.all([
     getCalendarEntries(loc.id),
     getNextNotice(loc.id),
+    activeClosures(loc.id),
+    upcomingClosures(loc.id, 30),
   ]);
+
+  // le chiusure hanno un banner dedicato: evita di ripeterle nella striscia
+  // "prossimo avviso" appena sotto l'hero
+  const showNextNotice = nextNotice && nextNotice.type !== "chiusura";
 
   const courseCats = CATEGORIES.map((c) => ({
     ...c,
@@ -102,9 +114,42 @@ export default async function SedePage({ params }: { params: { id: string } }) {
         </div>
       </section>
 
+      {/* CHIUSURE — l'informazione più importante prima di mettersi in auto */}
+      {(closuresNow.length > 0 || closuresSoon.length > 0) && (
+        <div className="relative z-10 mx-auto -mt-7 flex max-w-site flex-col gap-3 px-6">
+          {closuresNow.map((c) => (
+            <div key={c.id} className="rounded-[16px] bg-surface shadow-csr">
+              <ClosureBanner
+                title={c.title}
+                note={c.note}
+                dateFrom={c.dateFrom}
+                dateTo={c.dateTo}
+                scopeLabel={c.poolLabel}
+              />
+            </div>
+          ))}
+          {closuresSoon.map((c) => (
+            <div key={c.id} className="rounded-[16px] bg-surface shadow-csr">
+              <ClosureBanner
+                title={c.title}
+                note={c.note}
+                dateFrom={c.dateFrom}
+                dateTo={c.dateTo}
+                scopeLabel={c.poolLabel}
+                upcoming
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* AVVISO DATATO (prossimo evento/blocco) */}
-      {nextNotice && (
-        <div className="relative z-10 mx-auto -mt-7 max-w-site px-6">
+      {showNextNotice && nextNotice && (
+        <div
+          className={`relative z-10 mx-auto max-w-site px-6 ${
+            closuresNow.length > 0 || closuresSoon.length > 0 ? "mt-3" : "-mt-7"
+          }`}
+        >
           <Link
             href={nextNotice.href || `/sedi/${loc.id}#calendario`}
             className="flex flex-wrap items-center gap-3 rounded-[16px] border border-border bg-surface p-4 shadow-csr transition hover:border-aqua"

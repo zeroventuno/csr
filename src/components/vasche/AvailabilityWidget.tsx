@@ -8,6 +8,8 @@ import {
   poolLabel,
   type AvailabilitySnapshot,
 } from "@/lib/vasche-types";
+import ClosureBanner from "@/components/ClosureBanner";
+import { formatDate as fmt } from "@/lib/format";
 
 const REFRESH_MS = 20000;
 
@@ -85,14 +87,33 @@ export default function AvailabilityWidget({
           </div>
         </div>
 
-        {!snap ? (
-          <div className="mt-6 text-muted">Caricamento…</div>
+        {snap.locationClosed && snap.closure ? (
+          /* intera sede chiusa: nessun numero, solo il motivo */
+          <div className="mt-6">
+            <ClosureBanner
+              title={snap.closure.title}
+              note={snap.closure.note}
+              dateFrom={snap.closure.dateFrom}
+              dateTo={snap.closure.dateTo}
+              scopeLabel="Tutta la sede"
+            />
+            <p className="mt-3 text-[13px] text-muted">
+              Durante la chiusura la disponibilità delle corsie non viene
+              rilevata e il check-in è sospeso.
+            </p>
+          </div>
         ) : (
           <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {snap.pools.map((p) => (
               <div
                 key={p.id}
-                className="rounded-[16px] border border-border bg-surface-2 p-5"
+                className="rounded-[16px] border p-5"
+                style={{
+                  borderColor: p.closed ? "var(--red)" : "var(--border)",
+                  background: p.closed
+                    ? "rgba(214,72,92,.07)"
+                    : "var(--surface-2)",
+                }}
               >
                 <div className="flex items-center justify-between">
                   <div className="head text-[20px] font-bold text-text">
@@ -102,41 +123,71 @@ export default function AvailabilityWidget({
                     {p.lengthMeters}m
                   </span>
                 </div>
-                <div className="mt-3 flex flex-col gap-2">
-                  {p.paces.map((pc) => {
-                    const full = pc.free <= 0;
-                    return (
-                      <div
-                        key={pc.pace}
-                        className="flex items-center justify-between rounded-[11px] border px-3 py-2.5"
-                        style={{
-                          borderColor: full ? "var(--red)" : "var(--border)",
-                          background: full ? "rgba(214,72,92,.08)" : "var(--surface)",
-                        }}
-                      >
-                        <span className="flex items-center gap-2 text-[14px] font-semibold text-text">
-                          <i className={`ph ${paceIcon(pc.pace)} text-aqua`} />
-                          {paceLabel(pc.pace)}
-                        </span>
-                        <span
-                          className="flex items-center gap-1.5 text-[13px] font-bold"
-                          style={{ color: full ? "var(--red)" : "var(--green)" }}
+
+                {p.closed && p.closure ? (
+                  /* vasca chiusa: stato esplicito, diverso da "completo" */
+                  <div className="mt-3">
+                    <div className="flex items-center gap-2 text-[15px] font-extrabold uppercase tracking-[0.06em] text-red">
+                      <i className="ph-fill ph-warning-octagon text-lg" />
+                      Vasca chiusa
+                    </div>
+                    <div className="mt-1.5 text-[14px] font-semibold text-text">
+                      {p.closure.title}
+                    </div>
+                    <div className="mt-0.5 text-[12.5px] text-muted">
+                      {p.closure.dateFrom === p.closure.dateTo
+                        ? `Chiusa il ${fmt(p.closure.dateFrom)}`
+                        : `Chiusa dal ${fmt(p.closure.dateFrom)} al ${fmt(
+                            p.closure.dateTo
+                          )}`}
+                    </div>
+                    {p.closure.note && (
+                      <p className="mt-1.5 text-[12.5px] leading-[1.5] text-muted">
+                        {p.closure.note}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="mt-3 flex flex-col gap-2">
+                    {p.paces.map((pc) => {
+                      const full = pc.free <= 0;
+                      return (
+                        <div
+                          key={pc.pace}
+                          className="flex items-center justify-between rounded-[11px] border px-3 py-2.5"
+                          style={{
+                            borderColor: full ? "var(--red)" : "var(--border)",
+                            background: full
+                              ? "rgba(214,72,92,.08)"
+                              : "var(--surface)",
+                          }}
                         >
-                          {full ? (
-                            "Completo"
-                          ) : (
-                            <>
-                              <span className="head text-[20px] leading-none">
-                                {pc.free}
-                              </span>
-                              <span className="text-muted">/ {pc.total} liberi</span>
-                            </>
-                          )}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
+                          <span className="flex items-center gap-2 text-[14px] font-semibold text-text">
+                            <i className={`ph ${paceIcon(pc.pace)} text-aqua`} />
+                            {paceLabel(pc.pace)}
+                          </span>
+                          <span
+                            className="flex items-center gap-1.5 text-[13px] font-bold"
+                            style={{ color: full ? "var(--red)" : "var(--green)" }}
+                          >
+                            {full ? (
+                              "Completo"
+                            ) : (
+                              <>
+                                <span className="head text-[20px] leading-none">
+                                  {pc.free}
+                                </span>
+                                <span className="text-muted">
+                                  / {pc.total} liberi
+                                </span>
+                              </>
+                            )}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             ))}
           </div>

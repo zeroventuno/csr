@@ -35,6 +35,17 @@ export function formatDayMonth(iso: string): string {
   return `${d.getDate()} ${MESI_ABBR[d.getMonth()]}`;
 }
 
+/** "1 Ago – 15 Set 2026" (o "24 Giu 2026" se inizio e fine coincidono) */
+export function formatDateRange(from: string, to: string): string {
+  if (!to || from === to) return formatDate(from);
+  const a = parse(from);
+  const b = parse(to);
+  if (isNaN(a.getTime()) || isNaN(b.getTime())) return `${from} – ${to}`;
+  return a.getFullYear() === b.getFullYear()
+    ? `${formatDayMonth(from)} – ${formatDate(to)}`
+    : `${formatDate(from)} – ${formatDate(to)}`;
+}
+
 export function dayNumber(iso: string): string {
   const d = parse(iso);
   return String(d.getDate()).padStart(2, "0");

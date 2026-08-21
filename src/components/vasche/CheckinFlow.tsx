@@ -13,7 +13,14 @@ interface PoolLite {
 
 type Step = "pool" | "pace" | "confirm" | "success" | "error";
 
-export default function CheckinFlow({ pools }: { pools: PoolLite[] }) {
+export default function CheckinFlow({
+  pools,
+  closedNotice = "",
+}: {
+  pools: PoolLite[];
+  /** avviso di chiusura parziale (una vasca chiusa, le altre aperte) */
+  closedNotice?: string;
+}) {
   const [step, setStep] = useState<Step>("pool");
   const [pool, setPool] = useState<PoolLite | null>(null);
   const [pace, setPace] = useState<Pace | null>(null);
@@ -81,6 +88,15 @@ export default function CheckinFlow({ pools }: { pools: PoolLite[] }) {
         {step === "pool" && (
           <div>
             <Stepline n={1} t="Scegli la vasca" />
+            {closedNotice && (
+              <div className="mt-5 flex items-start gap-3 rounded-[16px] border border-red bg-[rgba(214,72,92,.18)] p-4">
+                <i className="ph-fill ph-warning-octagon mt-0.5 text-2xl text-white" />
+                <div>
+                  <div className="font-bold">Chiusura in corso</div>
+                  <div className="text-sm text-white/85">{closedNotice}</div>
+                </div>
+              </div>
+            )}
             <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-3">
               {pools.map((p) => (
                 <button

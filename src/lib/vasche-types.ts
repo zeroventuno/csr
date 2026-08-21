@@ -20,6 +20,16 @@ export function poolLabel(name: string, side: string | null): string {
   return side ? `${name} · Lato ${side}` : name;
 }
 
+/* ---- Chiusure (periodi di più giorni) ---- */
+/** Motivo e durata di una chiusura, per mostrarla insieme alla disponibilità. */
+export interface ClosureInfo {
+  title: string;
+  note: string;
+  dateFrom: string; // YYYY-MM-DD
+  dateTo: string; // YYYY-MM-DD (inclusa)
+  wholeLocation: boolean; // true = è chiusa tutta la sede, non solo la vasca
+}
+
 /* ---- Disponibilità pubblica (aggregata) ---- */
 export interface PaceAvail {
   pace: Pace;
@@ -34,11 +44,15 @@ export interface PoolAvail {
   paces: PaceAvail[];
   free: number;
   total: number;
+  closed: boolean; // vasca chiusa (manutenzione, sede chiusa…)
+  closure: ClosureInfo | null;
 }
 export interface AvailabilitySnapshot {
   pools: PoolAvail[];
   updatedAt: string; // ISO
   ok: boolean; // false se le tabelle non esistono ancora
+  locationClosed: boolean; // true se è chiusa l'intera sede
+  closure: ClosureInfo | null; // chiusura di sede (se locationClosed)
 }
 
 /* ---- Dati dettagliati recepção (admin) ---- */
@@ -57,12 +71,16 @@ export interface ReceptionPool {
   name: string;
   side: string | null;
   lanes: LaneDetail[];
+  closed: boolean;
+  closure: ClosureInfo | null;
 }
 export interface ReceptionSnapshot {
   pools: ReceptionPool[];
   totalInWater: number;
   updatedAt: string;
   ok: boolean;
+  locationClosed: boolean;
+  closure: ClosureInfo | null;
 }
 
 /* ---- Risultato check-in ---- */

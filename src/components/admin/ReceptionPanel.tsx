@@ -7,6 +7,7 @@ import {
   poolLabel,
   type ReceptionSnapshot,
 } from "@/lib/vasche-types";
+import ClosureBanner from "@/components/ClosureBanner";
 
 const REFRESH_MS = 10000;
 
@@ -56,6 +57,19 @@ export default function ReceptionPanel() {
 
   return (
     <div>
+      {/* chiusura di sede: la vede subito chi è in reception */}
+      {snap?.locationClosed && snap.closure && (
+        <div className="mb-5">
+          <ClosureBanner
+            title={snap.closure.title}
+            note={snap.closure.note}
+            dateFrom={snap.closure.dateFrom}
+            dateTo={snap.closure.dateTo}
+            scopeLabel="Tutta la sede"
+          />
+        </div>
+      )}
+
       {/* summary */}
       <div className="mb-5 flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-3 rounded-[16px] border border-border bg-surface px-5 py-4">
@@ -89,12 +103,35 @@ export default function ReceptionPanel() {
           {snap.pools.map((pool) => (
             <div
               key={pool.id}
-              className="rounded-[16px] border border-border bg-surface p-5"
+              className="rounded-[16px] border p-5"
+              style={{
+                borderColor: pool.closed ? "var(--red)" : "var(--border)",
+                background: pool.closed
+                  ? "rgba(214,72,92,.06)"
+                  : "var(--surface)",
+              }}
             >
-              <h3 className="mb-4 flex items-center gap-2 text-[20px] text-text">
+              <h3 className="mb-4 flex flex-wrap items-center gap-2 text-[20px] text-text">
                 <i className="ph ph-swimming-pool text-aqua" />
                 {poolLabel(pool.name, pool.side)}
+                {pool.closed && (
+                  <span className="flex items-center gap-1 rounded-[6px] bg-red px-2 py-0.5 text-[11px] font-bold uppercase tracking-[0.05em] text-white">
+                    <i className="ph-fill ph-warning-octagon" /> Chiusa
+                  </span>
+                )}
               </h3>
+              {pool.closed && pool.closure && !snap.locationClosed && (
+                <div className="mb-4">
+                  <ClosureBanner
+                    compact
+                    title={pool.closure.title}
+                    note={pool.closure.note}
+                    dateFrom={pool.closure.dateFrom}
+                    dateTo={pool.closure.dateTo}
+                    scopeLabel={poolLabel(pool.name, pool.side)}
+                  />
+                </div>
+              )}
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 {pool.lanes.map((l) => {
                   const ratio = l.capacity ? l.active / l.capacity : 0;
@@ -148,7 +185,16 @@ export default function ReceptionPanel() {
                         </button>
                         <button
                           onClick={() => adjust(l.id, 1)}
-                          disabled={l.active >= l.capacity || busy === l.id + 1}
+                          disabled={
+                            pool.closed ||
+                            l.active >= l.capacity ||
+                            busy === l.id + 1
+                          }
+                          title={
+                            pool.closed
+                              ? "Vasca chiusa: non è possibile aggiungere ingressi."
+                              : undefined
+                          }
                           aria-label="Aggiungi"
                           className="grid h-9 flex-1 place-items-center rounded-[9px] border border-border bg-surface text-text transition hover:border-aqua disabled:opacity-40"
                         >

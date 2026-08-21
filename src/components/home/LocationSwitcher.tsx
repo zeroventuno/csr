@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { Location } from "@/lib/types";
 import { getPublicAvailability } from "@/lib/vasche";
-import type { AvailabilitySnapshot } from "@/lib/vasche-types";
+import { poolLabel, type AvailabilitySnapshot } from "@/lib/vasche-types";
 import { getNextNotice } from "@/lib/blocks";
 import { CAL_META, type CalendarEntry } from "@/lib/blocks-types";
 import { formatDayMonth } from "@/lib/format";
+import ClosureBanner from "@/components/ClosureBanner";
 
 function ago(ms: number): string {
   const s = Math.floor(ms / 1000);
@@ -71,13 +72,26 @@ export default function LocationSwitcher({
 
   if (!loc) return null;
 
-  const live =
-    avail && avail.ok && avail.pools.length > 0 ? avail : null;
-  const totalFree = live
-    ? live.pools.reduce((s, p) => s + p.free, 0)
-    : 0;
-  const totalCap = live ? live.pools.reduce((s, p) => s + p.total, 0) : 0;
+  const snapOk = avail && avail.ok ? avail : null;
+  const sedeClosure = snapOk?.closure || null;
+  const openPools = snapOk ? snapOk.pools.filter((p) => !p.closed) : [];
+  const closedPools = snapOk ? snapOk.pools.filter((p) => p.closed) : [];
+
+  // sede chiusa: o c'è una chiusura di sede, oppure tutte le vasche sono chiuse
+  const fullyClosed =
+    !!sedeClosure ||
+    (!!snapOk && snapOk.pools.length > 0 && openPools.length === 0);
+  const shownClosure = sedeClosure || closedPools[0]?.closure || null;
+
+  const live = snapOk && openPools.length > 0 ? snapOk : null;
+  const totalFree = openPools.reduce((s, p) => s + p.free, 0);
+  const totalCap = openPools.reduce((s, p) => s + p.total, 0);
   const freePct = totalCap > 0 ? Math.round((totalFree / totalCap) * 100) : 0;
+
+  // la chiusura è già mostrata nel riquadro disponibilità: non ripeterla
+  const showNotice =
+    notice &&
+    !(notice.type === "chiusura" && (fullyClosed || closedPools.length > 0));
 
   return (
     <section id="info" className="relative z-10 mx-auto -mt-[44px] max-w-site px-6">
@@ -107,7 +121,30 @@ export default function LocationSwitcher({
         <div className="grid grid-cols-1 gap-px bg-border lg:grid-cols-[1.1fr_1fr_1fr]">
           {/* pool availability */}
           <div className="bg-surface px-[26px] py-6">
-            {live ? (
+            {fullyClosed && shownClosure ? (
+              /* sede/vasche chiuse: mai numeri di disponibilità */
+              <>
+                <ClosureBanner
+                  compact
+                  title={shownClosure.title}
+                  note={shownClosure.note}
+                  dateFrom={shownClosure.dateFrom}
+                  dateTo={shownClosure.dateTo}
+                  scopeLabel={
+                    shownClosure.wholeLocation
+                      ? "Tutta la sede"
+                      : "Vasca chiusa"
+                  }
+                />
+                <Link
+                  href={`/sedi/${loc.id}`}
+                  className="mt-2.5 inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-muted transition hover:text-aqua"
+                >
+                  Dettagli della sede
+                  <i className="ph ph-arrow-right" />
+                </Link>
+              </>
+            ) : live ? (
               <>
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted">
                   <span className="relative flex h-2 w-2">
@@ -132,6 +169,20 @@ export default function LocationSwitcher({
                     style={{ width: `${freePct}%` }}
                   />
                 </div>
+                {closedPools.length > 0 && (
+                  <div className="mt-2.5 flex items-start gap-1.5 text-[11.5px] font-semibold leading-[1.35] text-red">
+                    <i className="ph-fill ph-warning-octagon mt-px" />
+                    <span>
+                      {closedPools
+                        .map((p) => poolLabel(p.name, p.side))
+                        .join(", ")}{" "}
+                      {closedPools.length === 1 ? "chiusa" : "chiuse"}
+                      {closedPools[0].closure
+                        ? ` — ${closedPools[0].closure.title}`
+                        : ""}
+                    </span>
+                  </div>
+                )}
                 <Link
                   href={`/sedi/${loc.id}`}
                   className="mt-2.5 inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-muted transition hover:text-aqua"
@@ -183,7 +234,7 @@ export default function LocationSwitcher({
             <div className="mt-3.5 text-[15px] leading-[1.8] text-text">
               {loc.hours}
             </div>
-            {notice && (
+            {showNotice && notice && (
               <Link
                 href={notice.href || `/sedi/${loc.id}#calendario`}
                 className="mt-3 flex items-start gap-2 rounded-[11px] border px-3 py-2 transition hover:border-aqua"
