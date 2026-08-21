@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import CursorGlow from "@/components/CursorGlow";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "Centro Sportivo Roero — Nuota. Cresci. Vivi.",
@@ -44,6 +45,7 @@ export default function RootLayout({
       <body>
         <CursorGlow />
         {children}
+        <Analytics />
       </body>
     </html>
   );
